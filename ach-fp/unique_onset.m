@@ -4,8 +4,9 @@
 
 %%
 %modACh DLS: thres = 2; width = 7
-thres = 2.2; % CHANGE -- threshold for peaks/pauses to exceed, after baseline
-width = 7.2; % CHANGE -- require that peaks/pauses are at least X samples long (1 sample = 20ms)
+% opened as 2.2, 7.7
+thres = 2; % CHANGE -- threshold for peaks/pauses to exceed, after baseline
+width = 7; % CHANGE -- require that peaks/pauses are at least X samples long (1 sample = 20ms)
 
 peak_onset = cell(1,length(beh));
 peak_non = cell(1,length(beh));

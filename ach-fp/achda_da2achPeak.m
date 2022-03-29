@@ -4,8 +4,10 @@ good = [10:16,20,22:29,32:35,40:41,44:47]; % reward
 beh = modAChDA(good);
 
 %%
-thres = 4; % CHANGE -- threshold for peaks/pauses to exceed, after baseline
-width = 5; % CHANGE -- require that peaks/pauses are at least X samples long (1 sample = 20ms)
+thres = 2; % CHANGE -- threshold for peaks/pauses to exceed, after baseline
+width = 7; % CHANGE -- require that peaks/pauses are at least X samples long (1 sample = 20ms)
+% unique onset uses thres = 2; width = 7;
+% previously set to 4, 5
 
 da2achpeak = cell(length(beh),3);
 ach2achpeak = cell(length(beh),3);
@@ -22,6 +24,7 @@ for x = 1:length(beh)
     idx_mov = extractEventST([1:length(fp_ach)]', beh(x).on, beh(x).off, 1); % identify sample during locomotion
     idx_imm = extractEventST([1:length(fp_ach)]', beh(x).onRest, beh(x).offRest, 1); % identify sample during locomotion
     idx_imm_nonRew = idx_imm(~ismember(idx_imm, idx_rew)); % exclude reward, include rest
+    idx_mov_nonRew = idx_mov(~ismember(idx_mov, idx_rew)); % exclude reward, include locomotion
       
     fp_da = beh(x).FP{2}; % dopamine
     fp_da = fp_da - nanmean(fp_da);
@@ -29,17 +32,17 @@ for x = 1:length(beh)
     %% identify pauses
     % idxPauseMin = findIdxPause(fpInputVec, thres, width)
     peak_imm = findIdxPeak(fp_ach(idx_imm_nonRew), thres, width);
-    peak_mov = findIdxPeak(fp_ach(idx_mov), thres, width);
+    peak_mov = findIdxPeak(fp_ach(idx_mov_nonRew), thres, width);
     peak_rew = findIdxPeak(fp_ach(idx_rew), thres, width);
     
     %% extract ACh, DA signal during pauses
     % we will use idx_pause to center our window
     [da2achpeak{x,1}, sta_time] = getSTA(fp_da(idx_imm_nonRew), peak_imm/Fs, Fs, [-4 2]);
-    da2achpeak{x,2} = getSTA(fp_da(idx_mov), peak_mov/Fs, Fs, [-4 2]);
+    da2achpeak{x,2} = getSTA(fp_da(idx_mov_nonRew), peak_mov/Fs, Fs, [-4 2]);
     da2achpeak{x,3} = getSTA(fp_da(idx_rew), peak_rew/Fs, Fs, [-4 2]);
     
     ach2achpeak{x,1} = getSTA(fp_ach(idx_imm_nonRew), peak_imm/Fs, Fs, [-4 2]);
-    ach2achpeak{x,2} = getSTA(fp_ach(idx_mov), peak_mov/Fs, Fs, [-4 2]);
+    ach2achpeak{x,2} = getSTA(fp_ach(idx_mov_nonRew), peak_mov/Fs, Fs, [-4 2]);
     ach2achpeak{x,3} = getSTA(fp_ach(idx_rew), peak_rew/Fs, Fs, [-4 2]);
     
     for y = 1:3 %adjust for baseline
@@ -50,7 +53,7 @@ for x = 1:length(beh)
     waitbar(x/length(beh),h);
 end
 close(h);
- 
+%
 % N = X mice: DA to ACh pause
 tmp = {}; for x = 1:length(beh); tmp{x} = strtok(beh(x).rec,'-'); end
 uni = unique(tmp); nAn = length(uni);
@@ -61,13 +64,21 @@ for y = 1:3
         ii = find(strcmp(tmp,uni{x}));
         da2peak_an{y}(:,x) = nanmean([da2achpeak{ii,y}],2);
         ach2peak_an{y}(:,x) = nanmean([ach2achpeak{ii,y}],2);
+        
+        da2peak_an{y}(:,x) = da2peak_an{y}(:,x) - da2peak_an{y}(sta_time == -0.5,x);
     end
     % [max_val(:,y), ii] = max(da2peak_an{y});
     % [max_val(:,y), ii] = max(da2peak_an{y}(find(sta_time == 0):find(sta_time == 0.3),:)); % find MAX within range of +0 to +0.3s after ACh peak maximal deflection
     % max_time(:,y) = sta_time(ii + find(sta_time == 0) - 1); % adjust for starting at +0 s
     
-    [max_val(:,y), ii] = min(da2peak_an{y}(find(sta_time == -0.3):find(sta_time == 0),:)); % find MIN within range preceding ACh peak
-    max_time(:,y) = sta_time(ii + find(sta_time == -0.3) - 1);
+    % [max_val(:,y), ii] = min(da2peak_an{y}(find(sta_time == -0.3):find(sta_time == 0),:)); % find MIN within range preceding ACh peak
+    % max_time(:,y) = sta_time(ii + find(sta_time == -0.3) - 1);
+    
+    % DA peak after ACh peak
+    [mm, ii] = max(da2peak_an{y}(find(sta_time == 0):find(sta_time == 0.18),:)); % find MAX within range of +0 to +0.3s after ACh peak maximal deflection
+    max_time(:,y) = sta_time(find(sta_time == 0) + ii - 1);
+    mm2 = min(da2peak_an{y}(find(sta_time == -0.14):find(sta_time == 0),:)); % find MIN within range preceding ACh peak
+    max_val(:,y) = mm - mm2; % Difference in amplitude
 end
 
 %% PLOT: STATS -- DA to ACh pause -- comparing peak magnitude, peak latency
@@ -82,10 +93,11 @@ r = [1 2]; a = max_time(:,r);
 errorbar(nanmean(a)',SEM(a,1)','.k','MarkerSize',20);
 plot([0.85; 1.85].*ones(2,nAn),a','.:k','MarkerSize',20);
 xlim([0.5 2.5]); xticks([1 2]); xticklabels({'imm','mov'});
-ylabel('Latency to ACh peak (s)'); % ylim([0 0.5]); yticks([0:0.1:0.5]);
+ylabel('Latency to ACh peak (s)'); ylim([0 0.25]); yticks([0:0.05:0.25]);
 axis('square');
 p = []; [~,p(1)] = ttest(a(:,1),a(:,2));
 title(sprintf('DA to ACh peak - I:%d L:%d ms \n latency p-value: I/L - %1.3f',round(nanmean(a(:,1))*1000),round(nanmean(a(:,2))*1000),p(1))); 
+axis('square');
 
 subplot(2,2,2); hold on
 % violinplot(max_val); 
@@ -93,22 +105,23 @@ r = [1 2]; a = max_val(:,r);
 errorbar(nanmean(a)',SEM(a,1)','.k','MarkerSize',20);
 plot([0.85; 1.85].*ones(2,nAn),a','.:k','MarkerSize',20);
 xlim([0.5 2.5]); xticks([1 2]); xticklabels({'imm','mov'});
-ylabel('rDA1m peak amplitude (%dF/F)'); % ylim([-5 10]); yticks([-5:5:15]);
+ylabel('rDA1m peak amplitude (%dF/F)'); ylim([0 6]); yticks([0:1:6]);
 axis('square');
 p = []; [~,p(1)] = ttest(a(:,1),a(:,2));
 title(sprintf('DA to ACh peak - I:%1.2f L:%1.2f dF/F \n amplitude p-value: I/L - %1.3f',nanmean(a(:,1)),(nanmean(a(:,2))),p(1))); 
+axis('square');
 
 movegui(gcf,'center');
-%%
+%
 % PLOT: AVERAGES for all groups
 clr = {'r','g','b'};
 % fig = figure; fig.Position([3 4]) = [1000 420];
 subplot(2,2,3);
-plot([0 0],[-6 6],'--k'); hold on; 
+plot([0 0],[-4 4],'--k'); hold on; 
 for y = 1:2
 shadederrbar(sta_time, nanmean(da2peak_an{y},2), SEM(da2peak_an{y},2), clr{y}); hold on
 end
-xlabel('Latency to ACh peak (s)'); ylabel('rDA1m (%dF/F)'); xlim([-1 1]);
+xlabel('Latency to ACh peak (s)'); ylabel('rDA1m (%dF/F)'); xlim([-0.5 0.5]);
 axis('square')
 title(sprintf('DA to ACh peak (n = %d mice)',nAn));
 
@@ -117,7 +130,7 @@ plot([0 0],[-4 14],'--k'); hold on;
 for y = 1:2
 shadederrbar(sta_time, nanmean(ach2peak_an{y},2), SEM(ach2peak_an{y},2), clr{y}); hold on
 end
-xlabel('Latency to ACh peak (s)'); ylabel('ACh3.0 (%dF/F)'); xlim([-1 1]);
+xlabel('Latency to ACh peak (s)'); ylabel('ACh3.0 (%dF/F)'); xlim([-0.5 0.5]);
 axis('square')
 title(sprintf('ACh to ACh peak (n = %d mice)',nAn));
 movegui(gcf,'center');
