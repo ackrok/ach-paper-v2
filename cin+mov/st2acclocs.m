@@ -33,7 +33,8 @@ for x = 1:length(beh)
     fr_mov = []; delta = [];
     tmp5 = []; tmp50 = []; tmp95 = []; 
     for y = 1:length(st)
-        fr_mov(y) = 1/mean(diff(extractEventST(st{y},beh(x).on,beh(x).off,0))); % Firing rate during locomotion
+        if all(logical(~rem(beh(x).on,1))); diffFs = 50; else; diffFs = 1; end
+        fr_mov(y) = 1/mean(diff(extractEventST(st{y},beh(x).on./diffFs,beh(x).off./diffFs,0))); % Firing rate during locomotion
         delta(:,y) = (peth.fr(:,y) - fr_mov(y))./fr_mov(y);
         % st_new = shuffleST(st{y},nShuff);
         % st_new = shiftST(st{y},nShuff,1000/nShuff); 
@@ -82,7 +83,8 @@ linkaxes(sp,'y');
 
 %% HEATMAP
 a = max(delta_full); [~,b] = sort(a); c = delta_full(:,b);
-% figure; 
+figure; 
+% subplot(1,3,3);
 h = heatmap(c');
 h.Title = 'CIN to acc peak';
 h.XLabel = 'Latency to acc (s)'; h.YLabel = 'Unit';

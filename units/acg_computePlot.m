@@ -1,11 +1,12 @@
 %% Compute ACG
-st = {data.clusters(data.lbl.cin).spikeTimes}; %extract spike times from data structure
-%st = {sub.st};
+% st = {data.clusters(data.lbl.cin).spikeTimes}; %extract spike times from data structure
+st = {sub.st};
 
 acgLin = []; %initialize matrixes
 for x = 1:length(st)
     [xLin, nLin, ~, ~]= myACG(st{x},[],[]); %compute autocorrelogram with linear bins
     nLin = [flip(nLin);nLin]; %symmetrical ACG
+    nLin = nLin./length(st{x});
     xLin = [-1.*flip(xLin);xLin]; xLin = xLin.*1000; %x-values for ACG in milliseconds
     acgLin = [acgLin, nLin]; %add to matrix
 end
@@ -17,7 +18,8 @@ for x = 1:length(st)
     subplot(plM,plN,x); hold on
     bar(xLin, acgLin(:,x),'FaceColor',c(x,:),'FaceAlpha',0.5);
     xlim([-250 250]); xlabel('Lag (ms)');
-    title(sprintf('ACG unit#%d',data.lbl.cin(x))); 
+    title(sprintf('%d',x)); 
+    % title(sprintf('ACG unit#%d',data.lbl.cin(x))); 
 end
 
 %% Plot overlapping ACGs
@@ -44,3 +46,9 @@ for x = 1:length(mat)
     xlim([-250 250]); xlabel('Lag (ms)');
 end
 
+%% SHADEDERRBAR
+figure;
+sm = 10;
+shadederrbar(xLin, movmean(nanmean(acgLin,2),sm), movmean(SEM(acgLin,2),sm), 'b');
+ylabel('Firing Rate (Hz)');
+xlabel('Lag (ms)'); xlim([-250 250]); 

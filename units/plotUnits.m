@@ -1,7 +1,7 @@
 %% characterizing recordings
 
 %% UNIT 3D PLOT -- Peak Latency (ms), Prop (ISI > 2s), Firing Rate (Hz)
-roi = WT;
+roi = lesion;
 %
 peakL = [roi.peakL]; 
 fr    = [roi.fr]; 

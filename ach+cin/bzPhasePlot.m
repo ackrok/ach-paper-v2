@@ -19,9 +19,9 @@
 % If you want to show the phase distribution across all cells, collect phasestats.m across all cells, and do a histogram using phasebins as the bins ; again, if you want everything to be in degrees, 
 % you can just convert using rad2deg as is illustrated above
 
-rec = 'IV042_rec03';
+rec = 'IV042_rec01';
 
-lfp = struct; ch = [55];
+lfp = struct; ch = [73];
 lfp.data = bz_LoadBinary(['C:\Users\Anya\Desktop\IV_LOCAL\ACh\',rec,'.dat'],...
         'duration',Inf,'start',0,'frequency',30000,...
         'nchannels',128,'channels',ch,...
@@ -49,11 +49,11 @@ figure; plot(lags/1250, corr);
 
 
 %%
-st = {cinWT(strcmp({cinWT.rec},rec)).st};
+st = {cinWT(strcmp({cinWT.rec},lfp.rec)).st};
 spikes = struct; spikes.times = st;
 
 sub = WT(find([WT.label] == 1));
-spikes = struct; spikes.times = {sub(strcmp({sub.rec},rec)).st};
+spikes = struct; spikes.times = {sub(strcmp({sub.rec},lfp.rec)).st};
 
 %%
 data = bz_PhaseModulation('spikes',spikes, 'lfp',lfp, 'passband', [0.5 4], ...

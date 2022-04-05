@@ -31,17 +31,17 @@ for x = 1:length(uni)
     mat(x).n = [ccgst.pairs.n]; mat(x).m = [ccgst.pairs.m];
     mat(x).fr = [];
     mat(x).ccg = [ccgst.pairs.ccg];
-    mat(x).ccgZ = [ccgst.pairs.ccgZ];
+    % mat(x).ccgZ = [ccgst.pairs.ccgZ];
     mat(x).shuffPrc = cell(length(ccgst.pairs),1); %5th, 50th, 95th percentile of shuffled CCG's
     
     mat(x).fr_mvmt = [];
     mat(x).ccg_mvmt = [ccgst.pairs.ccg_mvmt]; 
-    mat(x).ccgZ_mvmt = [ccgst.pairs.ccgZ_mvmt];
+    % mat(x).ccgZ_mvmt = [ccgst.pairs.ccgZ_mvmt];
     mat(x).shuffPrc_mvmt = cell(length(ccgst.pairs),1); %5th, 50th, 95th percentile of shuffled CCG's
     
     mat(x).fr_rest = [];
     mat(x).ccg_rest = [ccgst.pairs.ccg_rest]; 
-    mat(x).ccgZ_rest = [ccgst.pairs.ccgZ_rest];
+    % mat(x).ccgZ_rest = [ccgst.pairs.ccgZ_rest];
     mat(x).shuffPrc_rest = cell(length(ccgst.pairs),1); %5th, 50th, 95th percentile of shuffled CCG's
     
     mat(x).dist = [];
@@ -67,7 +67,7 @@ ccgDelta_mvmt = []; ccgDelta_95mvmt = []; ccgDelta_50mvmt = [];
 ccgDelta_rest = []; ccgDelta_95rest = []; ccgDelta_50rest = [];
 
 for x = 1:length(mat)
-    if isempty(mat(x).ccgZ_rest); continue; end
+    if isempty(mat(x).ccg_rest); continue; end
     ccg_full = [ccg_full, mat(x).ccg];
     ccg_mvmt = [ccg_mvmt, mat(x).ccg_mvmt]; 
     ccg_rest = [ccg_rest, mat(x).ccg_rest];
@@ -96,7 +96,7 @@ for x = 1:length(mat)
     end
 end
 
-%% PLOT Z-SCORE
+%% PLOT EACH RECORDING
 figure;
 for x = 1:length(mat)
     if isempty(mat(x).ccgZ_rest); continue; end
@@ -161,8 +161,9 @@ xlim([-50 1150]);
 %% PLOT proportion of pair CCG > 95% CI
 above95 = []; below5 = [];
 for x = 1:length(mat)
-    for y = 1:size(mat(x).ccg_mvmt,2)
-        a = mat(x).ccg_mvmt(:,y); b = mat(x).shuffPrc_mvmt{y};
+    for y = 1:size(mat(x).ccg_rest,2)
+        a = mat(x).ccg_rest(:,y); 
+        b = mat(x).shuffPrc_rest{y};
         above95 = [above95, a > b(:,3)]; %binary vector where CCG passed 95% confidence interval
         below5 = [below5, a < b(:,1)]; %binary vector where CCG below 5% confidence interval
     end
@@ -173,7 +174,7 @@ bar(time, 100*sum(above95,2)/size(above95,2),'FaceColor','b','FaceAlpha',0.5);
 bar(time, -100*sum(below5,2)/size(below5,2),'FaceColor','b','FaceAlpha',0.5);
 xlabel('Lag (s)'); ylabel('Prop of Pair CCG > 95% CI (%)'); 
 xlim([-1 1]); ylim([-50 100]);
-title(sprintf('MVMT (n = %d pairs) %1.2f p > 95CI',size(above95,2),100*sum(above95(201,:),2)/size(above95,2)))
+title(sprintf('REST (n = %d pairs) %1.2f p > 95CI',size(above95,2),100*sum(above95(201,:),2)/size(above95,2)))
 
 %% PLOT IV069_rec01 ONLY
 x = 21; a = [12,23]; sm = 5;
