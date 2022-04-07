@@ -14,8 +14,8 @@ for y = 1:length(fName)
     [an,b] = strtok(fName{y},'_'); day = strtok(b,'_'); % Parse file name
     x = 1 + length(new);
     new(x).rec = [an,'-',day]; 
-    new(x).site = 'DMS';
-    new(x).rx = '';
+    new(x).site = 'DLS';
+    new(x).rx = 'pre';
     
     %% Pull parameters required for this analysis
 params = data.gen.params; % Extract params structure

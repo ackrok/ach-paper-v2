@@ -112,9 +112,9 @@ title(sprintf('CCG rest spikes (n = %d pairs)',size(ccgZ,2)));
 figure; 
 sm = 5;
 shadederrbar(time, movmean(nanmean(ccgDelta_50rest,2),sm), movmean(nanmean(ccgDelta_95rest,2),sm), 'r'); hold on
-shadederrbar(time, movmean(nanmean(ccgDelta_rest,2),sm), movmean(SEM(ccgDelta_rest,2),sm), 'b'); 
+shadederrbar(time, movmean(nanmean(ccgDelta_rest,2),sm), movmean(SEM(ccgDelta_rest,2),sm), 'r'); 
 shadederrbar(time, movmean(nanmean(ccgDelta_50mvmt,2),sm), movmean(nanmean(ccgDelta_95mvmt,2),sm), 'g'); hold on
-shadederrbar(time, movmean(nanmean(ccgDelta_mvmt,2),sm), movmean(SEM(ccgDelta_mvmt,2),sm), 'b'); 
+shadederrbar(time, movmean(nanmean(ccgDelta_mvmt,2),sm), movmean(SEM(ccgDelta_mvmt,2),sm), 'g'); 
 
 %plot(time, movmean(ccgDelta_mvmt,sm,1), ':b');
 xlabel('Lag (s)'); ylabel('CCG (deltaFR)'); xlim([-1 1]); grid on; 
@@ -129,12 +129,12 @@ figure;
 a = ccgDelta_rest;
 b = a(time == 0,:); % find delta @ lag = 0
 [c, ii] = sort(b); % sort in ascending order
-h = heatmap(a([find(time == -0.5):find(time == 0.5)],ii)');
+h = heatmap(a([find(time == -1):find(time == 1)],ii)');
 h.Title = 'REST CIN pair CCG';
 h.XLabel = 'Lag from reference spike (s)'; 
 h.YLabel = 'Pair Number';
-h.Colormap = jet; h.ColorLimits = [-0.4 1.4]; h.GridVisible = 'off';
-
+h.Colormap = jet; h.GridVisible = 'off';
+% h.ColorLimits = [-0.4 1.4];
 
 %% PLOT versus DISTANCE
 x_var = [mat.dist]'; %x_var = [mat.fr]';

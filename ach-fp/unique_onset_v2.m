@@ -36,7 +36,7 @@ for x = 1:length(beh); y = 1;
     prc_captured(x) = 0; counter = 0;
     while prc_captured(x) < 0.9 % Adjust threshold parameters until achieve 90%
         if counter >= 1; thres = thres - 0.2; end
-        if thres < 1; break; end
+        if thres < 1; break; end % Previously 1
         idx_onset = extractEventST([1:length(fp)]', beh(x).on, beh(x).on+25, 1); % Determine indices for onset window: [0 +0.5]
         fp_onset = fp(idx_onset); % Extract photometry signal during onset window: [0 +0.5]
         cross = find(fp_onset > thres); % Indices of samples where signal exceedes threshold

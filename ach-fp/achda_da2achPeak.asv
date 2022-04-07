@@ -1,11 +1,11 @@
-%% 
+%% Align photometry data to acceeration
 % good = [1:length(modAChDA)]; rmv = [3 5 18 22:24 27:28 30 33:34 36 41:42]; good(rmv) = []; % acceleration
 good = [10:16,20,22:29,32:35,40:41,44:47]; % reward
 beh = modAChDA(good);
 
 %%
-thres = 4; % CHANGE -- threshold for peaks/pauses to exceed, after baseline
-width = 5; % CHANGE -- require that peaks/pauses are at least X samples long (1 sample = 20ms)
+thres = 2; % CHANGE -- threshold for peaks/pauses to exceed, after baseline
+width = 7; % CHANGE -- require that peaks/pauses are at least X samples long (1 sample = 20ms)
 % unique onset uses thres = 2; width = 7;
 % previously set to 4, 5
 
@@ -13,7 +13,7 @@ da2achpeak = cell(length(beh),3);
 ach2achpeak = cell(length(beh),3);
 lbl = {'immobility','locomotion','reward'};
 
-h = waitbar(0, 'ach/da to ach peak');
+h = waitbar(0, 'cross corr');
 for x = 1:length(beh)
     
     %% acetylcholine
@@ -30,7 +30,7 @@ for x = 1:length(beh)
     fp_da = fp_da - nanmean(fp_da);
  
     %% identify pauses
-    thres = thres_keep(x); % from unique_onset_v2
+    % idxPauseMin = findIdxPause(fpInputVec, thres, width)
     peak_imm = findIdxPause(fp_ach(idx_imm_nonRew), 'peak', thres, width);
     peak_mov = findIdxPause(fp_ach(idx_mov_nonRew), 'peak', thres, width);
     peak_rew = findIdxPause(fp_ach(idx_rew), 'peak', thres, width);

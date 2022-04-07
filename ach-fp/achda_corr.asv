@@ -14,7 +14,6 @@ good = [1:length(modAChDA)]; rmv = 42; good(rmv) = [];
 beh = modAChDA(good);
 
 %%
-mat = struct;
 corr_mat = nan(1001,length(beh));
 corr_5 = nan(1001,length(beh)); corr_50 = corr_5; corr_95 = corr_5; 
 
@@ -42,13 +41,10 @@ for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
     % fp_1_imm = normalize(fp_1_imm,'range'); 
     % fp_2_imm = normalize(fp_2_imm,'range');
     %% bandpass filter
-    f = [0.5 4];
-    fp_1_filt = filterFP(fp_1,Fs,f,10,'bandpass');
-    fp_2_filt = filterFP(fp_2,Fs,f,10,'bandpass');
+    fp_1_filt = filterFP(fp_1,Fs,[4 15],10,'bandpass');
+    fp_2_filt = filterFP(fp_2,Fs,[4 15],10,'bandpass');
     fp_1_imm = fp_1_filt(idx_imm_nonRew); 
     fp_2_imm = fp_2_filt(idx_imm_nonRew); 
-    fp_2_imm = [fp_2_imm(1); diff(fp_2_imm)];
-    
     %% cross-correlation, whole signal
     % [xcf, lags, bounds] = crosscorr(fp_ach_imm, fp_da_imm,'NumLags',100,'NumSTD',3);
     % corr_achda(:,x) = xcf; corr_achda_bounds(:,x) = bounds; % STORE
@@ -64,10 +60,6 @@ for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
     corr_5(:,x) = prctile(tmp_shuff, 5, 2);
     corr_50(:,x) = prctile(tmp_shuff, 50, 2);
     corr_95(:,x) = prctile(tmp_shuff, 95, 2);
-    
-    mat(x).rec = beh(x).rec;
-    mat(x).corr_imm = corr_mat(:,x);
-    mat(x).shuff_imm = prctile(tmp_shuff, [5 50 95], 2);
     
 %%
     waitbar(x/length(beh),h);
@@ -90,13 +82,11 @@ title(sprintf('ACh/DA cross-correlation (n = %d recs)',size(corr_mat,2)));
 % by 10 samples (200ms) to the left
 
 %% HEATMAP
-win = [-1 1];
-
 figure;
 a = corr_mat;
 b = a(lags == 0,:); % find delta @ lag = 0
 [c, ii] = sort(b); % sort in ascending order
-h = heatmap(a([find(lags == win(1)*Fs) : find(lags == win(2)*Fs)],ii)');
+h = heatmap(a([find(lags == -2*Fs) : find(lags == 2*Fs)],ii)');
 h.Title = 'ACh/DA cross correlation';
 h.XLabel = 'Lags (s)'; 
 h.YLabel = 'Recording';
@@ -104,7 +94,7 @@ h.Colormap = jet; h.GridVisible = 'off';
 % h.ColorLimits = [-0.75 0.5];
 
 %% N = X mice
-corr_adj = corr_mat - nanmean(corr_mat([1:find(lags == win(1)*Fs)],:));
+corr_adj = corr_mat - nanmean(corr_mat([1:find(lags == -2*Fs)],:));
 % corr_adj = corr_mat;
 
 tmp = {}; for x = 1:length(beh); tmp{x} = strtok(beh(x).rec,'-'); end
@@ -123,14 +113,14 @@ end
 [min_val, ii] = max(corr_an);
 min_time = lags(ii)/50;
 
-%PLOT SHADEDERRBAR
+%% PLOT SHADEDERRBAR
 figure; hold on
 plot([0 0],[-0.6 0.6],'--k');
 % shadederrbar(lags/Fs, nanmean(corr_an_shuff,2), SEM(corr_an_shuff,2), 'k'); hold on
 shadederrbar(lags/Fs, nanmean(corr_an_50,2), nanmean(corr_an_5,2), 'k'); hold on
 plot(lags/Fs, corr_an, 'Color', [0 0 0 0.1]);
 shadederrbar(lags/Fs, nanmean(corr_an,2), SEM(corr_an,2), 'b');
-xlabel('Lag (s)'); xlim([-5 5]);
+xlabel('Lag (s)'); xlim([-1 1]);
 ylabel('Sample Cross Correlation'); ylim([-0.8 0.4]); yticks([-0.8:0.2:1.2]);
 title(sprintf('ACh/DA cross-correlation (n = %d mice)',nAn));
 % Interpretation:

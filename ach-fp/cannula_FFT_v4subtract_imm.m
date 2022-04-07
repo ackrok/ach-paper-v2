@@ -45,13 +45,16 @@ r = [find(f == 0.1):find(f == 100)]; % Restrict to [0.01 100]
 flog = log10(f(r));
 f_sub = 10.^(flog); % Regenerate frequency vector from log(freq)
 for x = 1:size(p1_mat,2)
-    vec_norm = normalize(log10(p1_mat(r,x)),'range'); % Normalize range from [0.01 100], scaling so range covers [0 1]
+    a = log10(p1_mat(r,x));
+    vec_norm = (a - a(end))./(a(1) - a(end)); 
+    % vec_norm = normalize(log10(p1_mat(r,x)),'range'); % Normalize range from [0.01 100], scaling so range covers [0 1]
     % vec_norm = normalize(log10(p1_mat(r,x)),'zscore'); % Normalize z-score
     % vec_norm = normalize(log10(p1_mat(r,x)),'range');
     % vec_norm = normalize(vec_norm,'zscore');
     tmp(:,x) = vec_norm;
 end
-norm = tmp;
+norm_d1d2 = tmp;
+fprintf('Normalization done! \n');
 
 %% PLOT FFT w/o subtraction
 figure; hold on

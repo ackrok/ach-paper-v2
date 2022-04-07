@@ -1,10 +1,12 @@
 a = [1:length(modACh)]; rmv = [3 17 20 22 23 30 36:39 41:43 48 50]; a(rmv) = [];
 beh = modACh(a); % Extract recordings with reward
+
+%%
 [align_full, time, ev] = plot_fp2event(beh,[-4 1],0); % Align photometry to events
 align_adj = align_full;
 for x = 1:length(beh); y = 1;
     align_adj{x,y} = align_adj{x,y} - nanmean(beh(x).FP{y});
-    align_adj{x,y} = align_adj{x,y} - nanmean(align_adj{x,y}(find(time == -4):find(time == -2),:));
+    align_adj{x,y} = align_adj{x,y} - nanmean(align_adj{x,y}(find(time == -4):find(time == -1),:));
 end
 
 % n = X mice
@@ -18,26 +20,26 @@ for x = 1:nAn
 end
 
 %% Population AVERAGE
-fig = figure; fig.Position(3) = 1000;
-subplot(1,2,1); hold on
+% fig = figure; fig.Position(3) = 1000;
+subplot(2,2,3); hold on
 shadederrbar(time, nanmean(align_an_avg,2), SEM(align_an_avg,2), 'g');
 ylabel('ACh3.0 fluorescence'); ylim([-2 8]); yticks([-2:2:8]);
-yyaxis right; shadederrbar(vel_time, nanmean(vel_an_avg,2), SEM(vel_an_avg,2), 'k');
-ylabel('Velocity (cm/s)'); ylim([-4 16]); yticks([-4:4:16]);
+% yyaxis right; shadederrbar(vel_time, nanmean(vel_an_avg,2), SEM(vel_an_avg,2), 'k');
+% ylabel('Velocity (cm/s)'); ylim([-4 16]); yticks([-4:4:16]);
 xlabel('Latency to Onset (s)'); xlim([-1 1]); xticks([-1:0.5:1]);
 title(sprintf('ACh3.0 DLS Population Average (n = %d mice)',size(align_an_avg,2)));
 
 % Population HEATMAP
 tmp_heat = align_an_avg([find(time == -1):find(time == 1)],:);
-m = max(tmp_heat); [~,m_sort] = sort(m);
+m = max(tmp_heat); %[~,m_sort] = sort(m);
 tmp_heat = tmp_heat(:,m_sort); % Rank by maximum
 
-subplot(1,2,2);
+subplot(2,2,4);
 h = heatmap(tmp_heat');
 h.Title = 'ACh3.0 DLS Population Average';
 h.XLabel = 'Latency to Onset (s)'; h.YLabel = 'Animal';
 h.GridVisible = 'off';
-h.Colormap = parula; h.ColorLimits = [-2 14];
+h.Colormap = parula; % h.ColorLimits = [-2 14];
 
 %% PLOT ALL ANIMALS to determine example
 figure; 

@@ -1,10 +1,12 @@
 a = [10:16,20,22:30,36:37,39:43,44:49];
 beh = modACh(a); % Extract recordings with reward
+
+%%
 [align_full, time, ev] = plot_fp2event(beh,[-6 2],0); % Align photometry to events
 align_adj = align_full;
 for x = 1:length(beh)
     align_adj{x,1} = align_adj{x,1} - nanmean(beh(x).FP{1}); 
-    align_adj{x,1} = align_adj{x,1} - nanmean(align_adj{x,1}(find(time == -6):find(time == -2),:),1);
+    align_adj{x,1} = align_adj{x,1} - nanmean(align_adj{x,1}(find(time == -6):find(time == -1),:),1);
 end
 
 %n = X mice
