@@ -45,7 +45,7 @@ for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
     fp_2_filt = filterFP(fp_2,Fs,f,10,'bandpass');
     
     %% cross-correlation IMMOBILITY
-    fp_1_sub = fp_1_filt(idx_imm_nonRew); 
+    fp_1_sub = fp_1_filt(idx_imm_nonRew); fp_1_sub = fp_1_sub - nanmean(fp_1_sub);
     fp_2_sub = fp_2_filt(idx_imm_nonRew); 
     fp_2_sub = [fp_2_sub(1); diff(fp_2_sub)]; % first derivative
     
@@ -65,7 +65,7 @@ for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
     mat(x).shuff_imm = prctile(tmp_shuff, [5 50 95], 2);
     
     %% cross-correlation LOCOMOTION
-    fp_1_sub = fp_1_filt(idx_mov_nonRew); 
+    fp_1_sub = fp_1_filt(idx_mov_nonRew); fp_1_sub = fp_1_sub - nanmean(fp_1_sub);
     fp_2_sub = fp_2_filt(idx_mov_nonRew); 
     fp_2_sub = [fp_2_sub(1); diff(fp_2_sub)]; % first derivative
     
@@ -80,7 +80,7 @@ for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
     
     %% cross-correlation REWARD
     if ~isempty(idx_rew)
-        fp_1_sub = fp_1_filt(idx_rew); 
+        fp_1_sub = fp_1_filt(idx_rew); fp_1_sub = fp_1_sub - nanmean(fp_1_sub);
         fp_2_sub = fp_2_filt(idx_rew); 
         fp_2_sub = [fp_2_sub(1); diff(fp_2_sub)]; % first derivative
         
