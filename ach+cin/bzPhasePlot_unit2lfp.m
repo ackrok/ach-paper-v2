@@ -76,7 +76,7 @@ plot([rad2deg(phasebins) 360+rad2deg(phasebins)],  [cos(phasebins) cos(phasebins
 % title(sprintf('phase = %d, p = %1.3f',round(mat(x).pref(y)),mat(x).p(y)));
 xlabel('phase'); xlim([0 720]); xticks([0:180:720]);
 axis('square');
-
+%%
 subplot(1,3,2); % Average across all units
 phasedistros = movmean([mat.phasedistros],sm);
 phasedistros(:,[mat.p] >= 0.05) = []; % remove untuned units

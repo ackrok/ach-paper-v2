@@ -49,6 +49,7 @@ for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
     fp_2_sub = fp_2_filt(idx_imm_nonRew); 
     fp_2_sub = [fp_2_sub(1); diff(fp_2_sub)]; % first derivative
     
+    
     % [xcf, lags, bounds] = crosscorr(fp_ach_imm, fp_da_imm,'NumLags',100,'NumSTD',3);
     % corr_achda(:,x) = xcf; corr_achda_bounds(:,x) = bounds; % STORE
     % [corr_achda_shuff(:,x),~,~] = crosscorr(fp_ach_imm(randperm(length(fp_ach_imm))), fp_da_imm(randperm(length(fp_ach_imm))),'NumLags',100,'NumSTD',3);
@@ -68,6 +69,7 @@ for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
     fp_1_sub = fp_1_filt(idx_mov_nonRew); fp_1_sub = fp_1_sub - nanmean(fp_1_sub);
     fp_2_sub = fp_2_filt(idx_mov_nonRew); 
     fp_2_sub = [fp_2_sub(1); diff(fp_2_sub)]; % first derivative
+    
     
     [corr_mat,~] = xcorr(fp_1_sub, fp_2_sub, 10*Fs, 'coeff');
     tmp_shuff = []; new_fp_2_sub = fp_2_sub;

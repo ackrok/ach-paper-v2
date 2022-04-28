@@ -2,16 +2,16 @@
 good = [1:length(modAChDA)]; rmv = 42; good(rmv) = [];
 beh = modAChDA(good);
 
-% mat = struct;
+rmv = [1 11 15 16 17 20 21 24];
+beh = allDMS; beh(rmv) = [];
+%%
+mat = struct;
 h = waitbar(0,'coherogram');
-for x = 1:length(beh)
+for x = 1:length(beh); aa = [1 2];
   
     mat(x).rec = beh(x).rec; % load recording name
-    fp_1 = beh(x).FP{1}; Fs = beh(x).Fs; % extract photometry signal from structure
-    fp_mu = nanmean(fp_1); % mean of entire photometry signal
-    fp_1 = fp_1 - fp_mu; % SUBTRACT baseline% from fp%, now centered on BASELINE
-    fp_2 = beh(x).FP{2}; % dopamine
-    fp_2 = fp_2 - nanmean(fp_2);
+    fp_1 = [beh(x).FP{aa(1)} - nanmean(beh(x).FP{aa(1)})];
+    fp_2 = [beh(x).FP{aa(2)} - nanmean(beh(x).FP{aa(2)})]; 
     
     if isfield(beh,'reward')
         idx_rew = extractEventST([1:length(fp_1)]', floor(beh(x).reward)-100, floor(beh(x).reward)+100, 1); % identify sample during reward
@@ -36,11 +36,11 @@ for x = 1:length(beh)
     %%
     tmp_coher = []; tmp_phase = []; new_2 = fp_2;
     for s = 1:50 % repeat shuffle N times
-        new_2 = circshift(new_2, Fs);
-        % new_2 = new_2(randperm(length(new_2)));
+        % new_2 = circshift(new_2, Fs);
+        new_2 = new_2(randperm(length(new_2)));
         [c,p] = bz_MTCoherogram(fp_1,new_2,'frequency',50,'range',[0 10],'window',10,'overlap',5,'step',5,'tapers',[3 5],'pad',0);
-        tmp_coher(:,s) = nanmean(c,2);
-        tmp_phase(:,s) = nanmean(p,2);
+        tmp_coher(:,s) = nanmean(c,2); % collapse time dimension
+        tmp_phase(:,s) = nanmean(p,2); % collapse time dimension
     end
     mat(x).coher_shuff = prctile(tmp_coher, [5 50 95], 2); % 5th, 50th, 95th percentiles
     mat(x).phase_shuff = prctile(tmp_phase, [5 50 95], 2); % 5th, 50th, 95th percentiles
@@ -78,17 +78,12 @@ for x = 1:nAn
     end
 end
 
-%%
-figure;
-yyaxis left; plot(f, nanmean(coher,2)); ylabel('coherence'); ylim([0 1]);
-yyaxis right; plot(f, rad2deg(nanmean(ph,2))); ylabel('degrees'); ylim([-180 180]);
-xlabel('frequency (Hz)');
-
 %% AVERAGE comparing behavioral states
 fig = figure; fig.Position(3) = 1000;
 subplot(1,2,1); hold on
 clr = {'r','g','b'};
 for y = 1:3; shadederrbar(f, nanmean(coher_an{y},2), SEM(coher_an{y},2), clr{y}); end
+% for y = 1:3; shadederrbar(f, nanmean(coher_state{y},2), SEM(coher_state{y},2), clr{y}); end
 plot([0.5 0.5],[0 1],'--k'); plot([4 4],[0 1],'--k');
 shadederrbar(f, nanmean(coher_shuff{2},2), nanmean(coher_shuff{3},2) - nanmean(coher_shuff{2},2), 'k');
 legend({'imm','','mov','','rew','','0.5Hz','4Hz'});
@@ -97,6 +92,7 @@ title('coherence magnitude: ACh/DA'); xlabel('frequency');
 
 subplot(1,2,2); hold on
 for y = 1:3; shadederrbar(f, nanmean(rad2deg(phase_an{y}),2), SEM(rad2deg(phase_an{y}),2), clr{y}); end
+% for y = 1:3; shadederrbar(f, nanmean(rad2deg(phase_state{y}),2), SEM(rad2deg(phase_state{y}),2), clr{y}); end
 plot([0.5 0.5],[-180 180],'--k'); plot([4 4],[-180 180],'--k');
 shadederrbar(f, nanmean(rad2deg(phase_shuff{2}),2), nanmean(rad2deg(phase_shuff{3}),2) - nanmean(rad2deg(phase_shuff{2}),2), 'k');
 legend({'imm','','mov','','rew','','0.5Hz','4Hz'});
@@ -104,55 +100,103 @@ ylabel('degrees'); ylim([-180 180]); yticks([-180:90:180]);
 title('coherence phase');
 
 %% AVERAGE heatmap for ONE behavioral state
-y = 1;
-fig = figure; fig.Position(3) = 1200;
+y = 2;
+fig = figure; fig.Position(3) = 1000;
 subplot(1,2,1);
-a = coher_an{y};
-% a = coher_state{y};
-m = max(a); [~,b] = sort(m); c = a(:,b)';
-z = 1; h(z) = heatmap(c); h(z).YLabel = 'animal';
-h(z).Title = 'Coherence magnitude: ACh/DA IMM';
-h(z).XLabel = 'frequency'; h(z).XData = f;
-h(z).Colormap = jet; h(z).GridVisible = 'off'; h(z).ColorLimits = [0 1];
+% a = coher_an{y};
+a = coher_state{y};
+m = max(a); [~,b] = sort(m); c = a(:,b);
+h(y) = imagesc(t, f, a, [0 1]);
+colorbar; colormap(jet(256));
+title('coherence ACh/DA'); axis('square')
+xlabel('time (s)'); ylabel('frequency (Hz)');
 
 subplot(1,2,2);
-a = 
-z = 2; h(z) = heatmap(rad2deg(phase_an{y})'); h(z).YLabel = 'animal'; 
-% z = 2; h(z) = heatmap(rad2deg(phase_state{y})'); h(z).YLabel = 'recording'; 
-h(z).Title = 'Coherence phase';
-h(z).XLabel = 'frequency'; h(z).XData = f;
-h(z).Colormap = jet; h(z).GridVisible = 'off'; h(z).ColorLimits = [-180 180];
+% a = rad2deg(-phase_an{y}); c = a(:,b); % flip axes so red colors are more prominent
+a = rad2deg(-phase_state{y}); c = a(:,b);
+h(y) = imagesc(t, f, a, [-180 180]);
+colorbar; colormap(jet(256));
+title('phase IMM'); axis('square')
+xlabel('time (s)'); ylabel('frequency (Hz)');
+movegui(gcf,'center');
 
 %% TESTING
-x = 7;
+x = 28;
 
-fp_1 = beh(x).FP{1}; Fs = beh(x).Fs; % extract photometry signal from structure
-fp_mu = nanmean(fp_1); % mean of entire photometry signal
-fp_1 = fp_1 - fp_mu; % SUBTRACT baseline% from fp%, now centered on BASELINE
-fp_2 = beh(x).FP{2}; % dopamine
-fp_2 = fp_2 - nanmean(fp_2);
+fp_mat = [beh(x).FP{1}, beh(x).FP{2}]; % extract photometry signal from structure
+fp_mat = fp_mat - nanmean(fp_mat);
+Fs = beh(x).Fs;
 
-sig1 = fp_1; 
-sig2 = fp_2; 
-% sig2 = [fp_2(1); diff(fp_2)]; Fs = 50;
-
-%
-[coher,ph,t,f] = bz_MTCoherogram(sig1,sig2,'frequency',50,'range',[0 10],'window',10,'overlap',5,'step',5,'tapers',[3 6],'pad',0);
+sig = fp_mat;
+r = [1200 1800];
+% r = [1 600];  % x = 7,  IMMOBILITY
+% r = [1200 1600];  % x = 7, IMMOBILITY + two movement bouts
+% r = [1200 1600]; % DMS x = 5 (GZ001 210416) IMM + MOV
+sig = fp_mat([find(beh(x).time == r(1)):find(beh(x).time == r(2))],:);
 
 %
+[coher,ph,t,f] = bz_MTCoherogram(sig(:,1),sig(:,2),'frequency',50,'range',[0 10],'window',10,'overlap',5,'step',5,'tapers',[3 6],'pad',0);
+
+%
+fig = figure; fig.Position([3 4]) = [1200 1200];
+
+subplot(2,2,1);
+y = 1; a = coher;
+sm = 0.75;
+a = imgaussfilt(a, sm); % filter image with Gaussian smoothing kernel of X std
+h(y) = imagesc(t+r(1), f, a, [0 1]);
+colorbar; colormap(jet(256));
+title(sprintf('%s coherence ACh/DA',beh(x).rec)); axis('square')
+xlabel('time (s)'); ylabel('frequency (Hz)');
+
+subplot(2,2,2);
+y = 2; a = rad2deg(-ph); % flip axes so red colors are more prominent
+a = imgaussfilt(a, sm); % filter image with Gaussian smoothing kernel of X std\
+h(y) = imagesc(t+r(1), f, a, [-180 180]);
+colorbar; colormap(jet(256));
+title(sprintf('%s phase IMM',beh(x).rec)); axis('square')
+xlabel('time (s)'); ylabel('frequency (Hz)');
+
+subplot(2,2,3); hold on
+r = [find(beh(x).time == r(1)) find(beh(x).time == r(2))];
+plot(beh(x).time(r(1):r(2)), getAcc(beh(x).vel(r(1):r(2))), 'k');
+on = beh(x).on(beh(x).on > r(1) & beh(x).on < r(2));
+off = beh(x).off(beh(x).off > r(1) & beh(x).off < r(2));
+stem(on./Fs, ones(length(on),1), 'g');
+stem(off./Fs, ones(length(off),1), 'r');
+if ~isempty(beh(x).reward); rew = beh(x).reward(beh(x).reward > r(1) & beh(x).reward < r(2)); 
+    stem(rew./Fs, ones(length(rew),1), 'b'); end
+ylabel('Acceleration'); ylim([-1 1]); axis('square');
+
+subplot(2,2,4); hold on
+plot(beh(x).time(r(1):r(2)), sig(:,1), 'g');
+plot(beh(x).time(r(1):r(2)), sig(:,2), 'm');
+ylabel('Fluorescence'); axis('square');
+
+movegui(gcf, 'center');
+
+%%
 fig = figure; fig.Position(3) = 1200;
 subplot(1,2,1);
-y = 1; h(y) = heatmap(coher);
-h(y).Title = sprintf('%s coherence magnitude ACh/DA',beh(x).rec);
-h(y).XLabel = 'time'; 
-h(y).YLabel = 'frequency'; h(y).YData = f;
-h(y).Colormap = jet; h(y).GridVisible = 'off';
+y = 1; h(y) = pcolor(t, f, coher);
+shading interp
+set(h(y),'EdgeColor','none','linestyle','none');
+colorbar; colormap(jet(256));
+title(sprintf('%s coherence magnitude ACh/DA',beh(x).rec)); axis('square')
+xlabel('time (s)'); ylabel('frequency (Hz)');
 
 subplot(1,2,2);
 y = 2; h(y) = heatmap(rad2deg(ph));
-h(y).Title = 'Coherence phase';
-h(y).XLabel = 'time';
-h(y).YLabel = 'frequency'; h(y).YData = f; 
-h(y).Colormap = jet; h(y).GridVisible = 'off';
+y = 1; h(y) = pcolor(t, f, rad2deg(ph));
+shading interp
+set(h(y),'EdgeColor','none','linestyle','none');
+colorbar; colormap(jet(256));
+title(sprintf('%s coherence magnitude ACh/DA',beh(x).rec)); axis('square')
+xlabel('time (s)'); ylabel('frequency (Hz)');
 
+%%
+figure;
+yyaxis left; plot(f, nanmean(coher,2)); ylabel('coherence'); ylim([0 1]);
+yyaxis right; plot(f, rad2deg(nanmean(ph,2))); ylabel('degrees'); ylim([-180 180]);
+xlabel('frequency (Hz)');
 %%

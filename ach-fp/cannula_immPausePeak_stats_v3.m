@@ -1,4 +1,4 @@
-z = 1; % PAUSE(1) or PEAK(2)
+z = 2; % PAUSE(1) or PEAK(2)
 
 switch z; case 1; lbl = 'Pause'; case 2; lbl = 'Peak'; end
 nAn = 4;

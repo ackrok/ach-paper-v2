@@ -27,8 +27,8 @@ title(sprintf('%s','IV066-rec03'));
 axis('square');
 
 subplot(1,3,2); hold on
-a = alignDelta_rest - nanmean(alignDelta_rest([1:50],:)); % subtract baseline
-b = shuff50_rest - nanmean(shuff50_rest([1:50],:)); % subtract baseline
+a = alignDelta_rest - nanmean(alignDelta_rest([1:find(time == -0.51)],:)); % subtract baseline
+b = shuff50_rest - nanmean(shuff50_rest([1:find(time == -0.51)],:)); % subtract baseline
 shadederrbar(time, movmean(nanmean(b,2),sm), movmean(nanmean(shuff5_rest,2),sm), 'k');
 shadederrbar(time, movmean(nanmean(a,2),5), movmean(SEM(a,2),5), 'r'); 
 ylabel('CIN Firing Rate (deltaFR)'); ylim([-0.2 0.1]);
@@ -39,6 +39,7 @@ axis('square');
 above95 = []; below5 = [];
 for y = 1:size(alignDelta_rest,2)
     a = alignDelta_rest(:,y); 
+    a = a - nanmean(a([1:find(time == -0.51)],:));
     b = shuff95_rest(:,y);
     c = shuff50_rest(:,y) - (shuff95_rest(:,y) - shuff50_rest(:,y));  % mat(x).shuff5_rest(:,y);
     above95 = [above95, a > b]; %binary vector where CCG passed 95% confidence interval
@@ -79,4 +80,4 @@ h = heatmap(c');
 h.Title = 'CIN to ACh pause';
 h.XLabel = 'Latency to ACh Pause (s)'; h.YLabel = 'Unit';
 h.GridVisible = 'off';
-h.Colormap = jet; h.ColorLimits = [-0.3 0.3];
+h.Colormap = jet; h.ColorLimits = [-0.4 0.4];

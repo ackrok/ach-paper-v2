@@ -15,124 +15,168 @@ beh = modAChDA(good);
 
 %%
 mat = struct;
-corr_mat = nan(1001,length(beh));
-corr_5 = nan(1001,length(beh)); corr_50 = corr_5; corr_95 = corr_5; 
+corr_cell = cell(3,4);
+for a = 1:3; for b = 1:4; corr_cell{a,b} = nan(501,length(beh)); end; end
 
 h = waitbar(0, 'cross corr');
-for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
+for x = 1:length(beh); y = [2 1]; %CHANGE - which FP signal to run CCG or ACG on
     
-    %% acetylcholine
-    fp_1 = beh(x).FP{y(1)}; Fs = beh(x).Fs; % extract photometry signal from structure
-    fp_mu = nanmean(fp_1); % mean of entire photometry signal
-    fp_1 = fp_1 - fp_mu; % SUBTRACT baseline% from fp%, now centered on BASELINE
+    %% extract signals
+    fp_mat = [];
+    fp_mat(:,1) = beh(x).FP{y(1)}; Fs = beh(x).Fs; % extract photometry signal from structure
+    fp_mat(:,1) = fp_mat(:,1) - nanmean(fp_mat(:,1)); % subtract baseline (mean of entire photometry signal) from fp
+    fp_mat(:,2) = beh(x).FP{y(2)}; % dopamine
+    fp_mat(:,2) = fp_mat(:,2) - nanmean(fp_mat(:,2)); % subtract baseline (mean of entire photometry signal) from fp
+    % fp_mat(:,2) = filterFP(fp_mat(:,2),Fs,[0.5 4],10,'bandpass'); 
+    
+%     fp_filt = [];
+%     passband = [0.5 4]; % bandpass filter
+%     for y = 2
+%         fp_filt(:,y) = filterFP(fp_mat(:,y),Fs,passband,10,'bandpass'); 
+%     end
+%     testdiff = diff(fp_filt(:,2)); testdiff = testdiff - nanmean(testdiff);
+%     fp_filt(:,2) = testdiff;
+%     testdiff = cumsum(fp_filt(:,1)); testdiff - nanmean(testdiff);
+%     fp_filt(:,1) = testdiff
+
+    %% behavioral states
     if isfield(beh,'reward')
-        idx_rew = extractEventST([1:length(fp_1)]', floor(beh(x).reward)-100, floor(beh(x).reward)+100, 1); % identify sample during reward
+        idx_rew = extractEventST([1:length(fp_mat)]', floor(beh(x).reward), floor(beh(x).reward)+100, 1); % identify sample during reward
     else; idx_rew = []; end
-    idx_mov = extractEventST([1:length(fp_1)]', beh(x).on, beh(x).off, 1); % identify sample during locomotion
-    idx_imm = extractEventST([1:length(fp_1)]', beh(x).onRest, beh(x).offRest, 1); % identify sample during locomotion
+    idx_mov = extractEventST([1:length(fp_mat)]', beh(x).on, beh(x).off, 1); % identify sample during locomotion
+    idx_mov_nonRew = idx_mov(~ismember(idx_mov, idx_rew)); % exclude reward, include locomotion
+    idx_imm = extractEventST([1:length(fp_mat)]', beh(x).onRest, beh(x).offRest, 1); % identify sample during locomotion
     idx_imm_nonRew = idx_imm(~ismember(idx_imm, idx_rew)); % exclude reward, include rest
-    fp_1_imm = fp_1(idx_imm_nonRew); 
+    idx_cell = cell(3,1); idx_cell{1} = idx_imm_nonRew; idx_cell{2} = idx_mov_nonRew; idx_cell{3} = idx_rew; % index into cell array for ease of iteration
     
-    fp_2 = beh(x).FP{y(2)}; % dopamine
-    fp_2 = fp_2 - nanmean(fp_2);
-    fp_2_imm = fp_2(idx_imm_nonRew);
     %%
-    if isempty(fp_1_imm) || isempty(fp_2_imm); continue; end
-    %%
-    % fp_1_imm = normalize(fp_1_imm,'range'); 
-    % fp_2_imm = normalize(fp_2_imm,'range');
-    %% bandpass filter
-    f = [0.5 4];
-    fp_1_filt = filterFP(fp_1,Fs,f,10,'bandpass');
-    fp_2_filt = filterFP(fp_2,Fs,f,10,'bandpass');
-    fp_1_imm = fp_1_filt(idx_imm_nonRew); 
-    fp_2_imm = fp_2_filt(idx_imm_nonRew); 
-    fp_2_imm = [fp_2_imm(1); diff(fp_2_imm)];
-    
-    %% cross-correlation, whole signal
-    % [xcf, lags, bounds] = crosscorr(fp_ach_imm, fp_da_imm,'NumLags',100,'NumSTD',3);
-    % corr_achda(:,x) = xcf; corr_achda_bounds(:,x) = bounds; % STORE
-    % [corr_achda_shuff(:,x),~,~] = crosscorr(fp_ach_imm(randperm(length(fp_ach_imm))), fp_da_imm(randperm(length(fp_ach_imm))),'NumLags',100,'NumSTD',3);
-    [corr_mat(:,x),lags] = xcorr(fp_1_imm, fp_2_imm, 10*Fs, 'coeff');
-    tmp_shuff = []; new_fp_2_imm = fp_2_imm;
-    for s = 1:50
-        new_fp_2_imm = circshift(new_fp_2_imm, Fs);
-        tmp_shuff(:,s) = xcorr(fp_1_imm, new_fp_2_imm, 10*Fs, 'coeff');
-        % tmp_shuff(:,s) = xcorr(fp_1_imm(randperm(length(fp_1_imm))), fp_2_imm(randperm(length(fp_2_imm))), 10*Fs, 'coeff');
-        % tmp_shuff(:,s) = xcorr(fp_1_imm, fp_2_imm(randperm(length(fp_2_imm))), 10*Fs, 'coeff');
-    end
-    corr_5(:,x) = prctile(tmp_shuff, 5, 2);
-    corr_50(:,x) = prctile(tmp_shuff, 50, 2);
-    corr_95(:,x) = prctile(tmp_shuff, 95, 2);
-    
     mat(x).rec = beh(x).rec;
-    mat(x).corr_imm = corr_mat(:,x);
-    mat(x).shuff_imm = prctile(tmp_shuff, [5 50 95], 2);
+    
+    fp_sub = [];
+    for z = 1:3
+        if length(idx_cell{z})< 2; continue; end
+        fp_sub = fp_mat(idx_cell{z},:); % signal
+        % fp_sub = normalize(fp_mat,1,'range'); % normalize [0 1]
+        % fp_sub = fp_filt(idx_cell{z},:); % bandpass filtered signal
+        
+        % [xcf, lags, bounds] = crosscorr(fp_sub(:,1), fp_sub(:,2),'NumLags',100,'NumSTD',3);
+        % [shuff,~,~] = crosscorr(fp_sub(randperm(size(fp_sub,1)),1), fp_sub(randperm(size(fp_sub,2)),2),'NumLags',100,'NumSTD',3);
+        [corr_tmp, lags] = xcorr(fp_sub(:,1), fp_sub(:,2), 5*Fs, 'coeff'); % cross-correlation
+        
+        fp_sub_new = fp_sub(:,2);
+        tmp_shuff = []; 
+        for s = 1:50
+            fp_sub_new = circshift(fp_sub_new, Fs);
+            % tmp_shuff(:,s) = xcorr(fp_sub(randperm(size(fp_sub,1)),1), fp_sub(randperm(size(fp_sub,2)),2), 10*Fs, 'coeff');
+            % tmp_shuff(:,s) = xcorr(fp_sub(:,1), fp_sub(randperm(size(fp_sub,2)),2), 10*Fs, 'coeff');
+            tmp_shuff(:,s) = xcorr(fp_sub(:,1), fp_sub_new, 5*Fs, 'coeff');
+        end
+        
+        mat(x).corr{z} = corr_tmp;
+        mat(x).shuff{z} = prctile(tmp_shuff, [5 50 95], 2);
+        corr_cell{z,1}(:,x) = corr_tmp;       % cross-correlation
+        corr_cell{z,2}(:,x) = prctile(tmp_shuff, 5, 2); % shuffle 5th percentile
+        corr_cell{z,3}(:,x) = prctile(tmp_shuff, 50, 2); % shuffle 50th percentile
+        corr_cell{z,4}(:,x) = prctile(tmp_shuff, 95, 2); % shuffle 95th percentile
+    end
     
 %%
     waitbar(x/length(beh),h);
 end
 close(h);
 
+%N = X mice
+corr_an = cell(3,4); min_val = []; min_lag = [];
+tmp = {}; for x = 1:length(beh); tmp{x} = strtok(beh(x).rec,'-'); end
+uni = unique(tmp); nAn = length(uni);
+
+for x = 1:nAn
+    idx = strcmp(tmp,uni{x});
+    for a = 1:3; for b = 1:4
+        corr_adj = corr_cell{a,b};
+        if b == 1; corr_adj = corr_adj - nanmean(corr_adj([1:find(lags == -2)],:)); end
+        corr_an{a,b}(:,x) = nanmean(corr_adj(:,idx),2);
+        end; end
+end
+for z = 1:3
+    [min_val(:,z), ii] = min(corr_an{z,1});
+    min_lag(:,z) = lags(ii)./50;
+end
+
 %% PLOT: average full cross-correlation between ACh, DA signals
-corr_adj = corr_mat - nanmean(corr_mat([1:50],:));
-% corr_adj = corr_mat;
+z = 3;
 
 figure; hold on
 plot([0 0],[-0.7 0.2],'--k');
 %shadederrbar(lags/Fs, nanmean(corr_shuff,2), SEM(corr_shuff,2), 'k'); hold on
-plot(lags/Fs, corr_adj, 'Color', [0 0 0 0.1]);
-shadederrbar(lags/Fs, nanmean(corr_adj,2), SEM(corr_adj,2), 'b');
+plot(lags/Fs, corr_cell{z,1}, 'Color', [0 0 0 0.1]);
+shadederrbar(lags/Fs, nanmean(corr_cell{z,1},2), SEM(corr_cell{z,1},2), 'b');
 xlabel('Lag (s)'); ylabel('Sample Cross Correlation');
-title(sprintf('ACh/DA cross-correlation (n = %d recs)',size(corr_mat,2)));
+title(sprintf('ACh/DA cross-correlation (n = %d recs)',size(corr_cell{z,1},2)));
 % Interpretation:
 % peak corr has POSITIVE lag, so DA signal is equal to ACh signal shifted
 % by 10 samples (200ms) to the left
 
 %% HEATMAP
+z = 1;
 win = [-1 1];
-
 figure;
-a = corr_mat;
+a = corr_an{z,1};
 b = a(lags == 0,:); % find delta @ lag = 0
 [c, ii] = sort(b); % sort in ascending order
 h = heatmap(a([find(lags == win(1)*Fs) : find(lags == win(2)*Fs)],ii)');
-h.Title = 'ACh/DA cross correlation';
+h.Title = 'ACh/DA corr IMM';
 h.XLabel = 'Lags (s)'; 
 h.YLabel = 'Recording';
 h.Colormap = jet; h.GridVisible = 'off';
-% h.ColorLimits = [-0.75 0.5];
+h.ColorLimits = [-1 0.5];
 
-%% N = X mice
-corr_adj = corr_mat - nanmean(corr_mat([1:find(lags == win(1)*Fs)],:));
-% corr_adj = corr_mat;
-
-tmp = {}; for x = 1:length(beh); tmp{x} = strtok(beh(x).rec,'-'); end
-uni = unique(tmp); nAn = length(uni);
-corr_an = []; corr_an_shuff = [];
-corr_an_5 = []; corr_an_50 = []; corr_an_95 = [];
-for x = 1:nAn
-    ii = find(strcmp(tmp,uni{x}));
-    corr_an(:,x) = nanmean([corr_adj(:,ii)],2);
-    % corr_an_shuff(:,x) = nanmean([corr_shuff(:,ii)],2);
-    % corr_an_shuff(:,x) = corr_shuff(:,ii(randi(length(ii),1)));
-    corr_an_5(:,x) = nanmean([corr_5(:,ii)],2); % corr_5(:,ii(randi(length(ii),1))); %
-    corr_an_50(:,x) = nanmean([corr_50(:,ii)],2); % corr_50(:,ii(randi(length(ii),1)));
-    corr_an_95(:,x) = nanmean([corr_95(:,ii)],2); % corr_95(:,ii(randi(length(ii),1)));
+%% PLOT N = X mice
+fig = figure; fig.Position(3) = 1375; clr = {'r','g','b'};
+for z = 1:3
+    subplot(1,3,z); hold on
+    plot([0 0],[-0.6 0.6],'--k');
+    a = nanmean(corr_an{z,3},2);
+    a = a - nanmean(a(find(lags/Fs == -5):find(lags/Fs == -1),:));
+    shadederrbar(lags/Fs, a, nanmean(corr_an{z,4}-corr_an{z,3},2), 'k'); hold on
+    a = corr_an{z,1}; a = a - nanmean(a(find(lags/Fs == -5):find(lags/Fs == -1),:));
+    plot(lags/Fs, a, 'Color', [0 0 0 0.1]);
+    shadederrbar(lags/Fs, nanmean(a,2), SEM(corr_an{z,1},2), clr{z});
+    xlabel('Lag (s)'); xlim([-1 1]);
+    ylabel('Correlation Coefficient'); ylim([-1 0.5]); yticks([-1:0.25:1]);
+    title(sprintf('ACh/DA corr (n = %d mice)',nAn)); axis('square');
 end
-[min_val, ii] = max(corr_an);
-min_time = lags(ii)/50;
+movegui(gcf,'center');
 
-%PLOT SHADEDERRBAR
-figure; hold on
-plot([0 0],[-0.6 0.6],'--k');
-% shadederrbar(lags/Fs, nanmean(corr_an_shuff,2), SEM(corr_an_shuff,2), 'k'); hold on
-shadederrbar(lags/Fs, nanmean(corr_an_50,2), nanmean(corr_an_5,2), 'k'); hold on
-plot(lags/Fs, corr_an, 'Color', [0 0 0 0.1]);
-shadederrbar(lags/Fs, nanmean(corr_an,2), SEM(corr_an,2), 'b');
-xlabel('Lag (s)'); xlim([-5 5]);
-ylabel('Sample Cross Correlation'); ylim([-0.8 0.4]); yticks([-0.8:0.2:1.2]);
-title(sprintf('ACh/DA cross-correlation (n = %d mice)',nAn));
+%% PLOT N = X mice + STATS
+fig = figure; fig.Position(3) = 1375; 
+subplot(1,3,1); hold on; clr = {'r','g','b'};
+plot([0 0],[-1 0.6],'--k');
+shadederrbar(lags/Fs, nanmean(corr_an{1,3},2), nanmean(corr_an{1,2},2), 'k'); hold on
+for z = 1:3
+    shadederrbar(lags/Fs, nanmean(corr_an{z,1},2), SEM(corr_an{z,1},2), clr{z});
+end
+xlabel('Lag (s)'); xlim([-1 1]);
+ylabel('Correlation Coefficient'); ylim([-1 0.5]); yticks([-1:0.25:1]);
+title(sprintf('ACh/DA corr (n = %d mice)',nAn)); axis('square');
+
+subplot(1,3,2); hold on; clr = {'r','g','b'};
+a = min_val;
+violinplot(a);
+errorbar(nanmean(a,1), SEM(a,1),'.k', 'MarkerSize', 20);
+xlim([0.5 3.5]); xticks([1:3]); xticklabels({'imm','mov','rew'}); 
+ylabel('Correlation Coefficient'); ylim([-1 0]); yticks([-1:0.2:1]);
+title(sprintf('coeff: signrank(i/m: %1.3f | i/r: %1.3f)', signrank(a(:,1),a(:,2)), signrank(a(:,1),a(:,3)))); axis('square');
+
+subplot(1,3,3); hold on; clr = {'r','g','b'};
+a = min_lag.*1000;
+violinplot(a);
+errorbar(nanmean(a,1), SEM(a,1),'.k', 'MarkerSize', 20);
+xlim([0.5 3.5]); xticks([1:3]); xticklabels({'imm','mov','rew'}); 
+ylabel('Latency to minimum (ms)'); ylim([-250 0]); yticks([-250:50:0]);
+title(sprintf('lag: signrank(i/m: %1.3f | i/r: %1.3f)', signrank(a(:,1),a(:,2)), signrank(a(:,1),a(:,3)))); axis('square');
+movegui(gcf,'center');
+
 % Interpretation:
 % peak corr has POSITIVE lag, so DA signal is equal to ACh signal shifted
 % by 10 samples (200ms) to the left
@@ -163,3 +207,5 @@ bar(lags/Fs, 100*sum(above95,2)/size(above95,2),'FaceColor','b','FaceAlpha',0.5)
 bar(lags/Fs, -100*sum(below5,2)/size(below5,2),'FaceColor','b','FaceAlpha',0.5);
 xlabel('Lag (s)'); ylabel('Prop of CCG > 95% CI (%)'); ylim([-100 100]);
 title(sprintf('Proportion of CCG > 95p CI (n = %d mice)',size(above95,2)))
+
+%% PLOT BEHAVIORAL STATES

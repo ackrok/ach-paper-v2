@@ -137,10 +137,11 @@ h.Colormap = jet; h.GridVisible = 'off';
 % h.ColorLimits = [-0.4 1.4];
 
 %% PLOT versus DISTANCE
-x_var = [mat.dist]'; %x_var = [mat.fr]';
+x_var = [mat.dist]; x_var = x_var(:); %x_var = [mat.fr]';
 max_ccg = max(ccgDelta,[],1)';
 %%
-tbl = table(x_var,max_ccg,'VariableNames',{'dist','maxCCG'}); %Create a table
+% tbl = table(x_var,max_ccg,'VariableNames',{'dist','maxCCG'}); %Create a table
+tbl = table(x_var(x_var < 800), max_ccg(x_var < 800), 'VariableNames', {'dist','maxCCG'}); %Create a table
 mdl = fitlm(tbl,'maxCCG ~ dist'); %Fit a linear regression model with max(CCG) as response variable, unitDistance as predictor variable
 ci = coefCI(mdl); %Find confidence intervals for the coefficients of the model
 x_hat = [1:max(x_var)]; 
@@ -150,7 +151,7 @@ xpatch = [x_hat,fliplr(x_hat)]; ypatch = [yerru,fliplr(yerrl)]; %Generate patch 
 
 figure; hold on
 plot(x_hat,nanmean(ccg95(:))*ones(length(x_hat),1),'--k'); %Dashed line for 95% confidence interval
-plot(x_var,max_ccg,'.b','MarkerSize',10);
+plot(x_var,max_ccg,'.b','MarkerSize',20);
 fill(xpatch,ypatch,[0 0 0],'FaceAlpha',0.25,'EdgeAlpha',0); %Plotting shaded confidence interval
 plot(x_hat,y_hat,'-r'); %Plotting model fit line
 xlabel('Unit Distance (um)'); ylabel('Max CCG rest spikes (deltaFR)');

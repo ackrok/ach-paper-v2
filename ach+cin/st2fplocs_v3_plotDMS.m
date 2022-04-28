@@ -32,6 +32,7 @@ axis('square');
 above95 = []; below5 = [];
 for y = 1:size(alignDelta_rest,2)
     a = alignDelta_rest(:,y); 
+    a = a - nanmean(a([1:find(time == -0.51)],:));
     b = shuff95_rest(:,y);
     c = shuff50_rest(:,y) - (shuff95_rest(:,y) - shuff50_rest(:,y));  % mat(x).shuff5_rest(:,y);
     above95 = [above95, a > b]; %binary vector where CCG passed 95% confidence interval

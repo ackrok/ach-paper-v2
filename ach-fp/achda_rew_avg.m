@@ -1,9 +1,10 @@
 %% Align photometry data to reward
-good_rew = [10:16,20,22:29,32:35,40:42,44:47];
+% good_rew = [10:16,20,22:29,32:35,40:42,44:47];
+good_rew = [10:16,20,22:26,28:29,32:35,40:42,44:46];
 beh = modAChDA(good_rew);
 [align_full, t] = plot_fp2event(beh, [-6 2], 0);
 
-%% n = X mice, concatenate all trials for each animal
+% n = X mice, concatenate all trials for each animal
 an = {}; for x = 1:length(beh); an{x} = strtok(beh(x).rec,'-'); end
 uni = unique(an);
 
@@ -109,3 +110,90 @@ violinplot(r2); title('Regression: R-squared');
 ylim([-0.2 1]); yticks([0:0.5:1]); ylabel('R-squared');
 xlim([0.2 1.8]); xticklabels({''}); grid on
 
+%% STATS
+lag = [];
+    y = 1;
+    r = [0.1 0.3]; r = (r/(1/Fs) + find(t==0)); % range for ACh peak
+    [a,b] = max(align_an_avg_norm{y}(r(1):r(2),:)); % find local maximum within range
+    c = t(b + r(1) - 1); % convert index to seconds
+    c(b == 1) = nan; % remove values that are not local maxima
+    lag(:,1) = c;
+    
+    y = 2;
+    r = [0.1 0.5]; r = (r/(1/Fs) + find(t==0)); % range for DA peak
+    [a,b] = max(align_an_avg_norm{y}(r(1):r(2),:)); % find local maximum within range
+    c = t(b + r(1) - 1); % convert index to seconds
+    lag(:,2) = c;
+    
+    y = 1;
+    r = [0.2 0.7]; r = (r/(1/Fs) + find(t==0)); % range for ACh trough
+    [a,b] = min(align_an_avg_norm{y}(r(1):r(2),:)); % find local minima within range
+    c = t(b + r(1) - 1); % convert index to seconds
+    lag(:,3) = c;
+
+figure; hold on;
+a = lag'.*1000;
+plot(a); 
+xlim([0.5 3.5]); xticks([1:3]); xticklabels({'ACh peak','DA peak','ACh trough'});
+ylabel('Latency to reward (ms)'); ylim([0 700]);
+
+%% STATS
+lag = []; val = [];
+for x = 1:length(uni)
+    y = 1;
+    r = [0.1 0.3]; r = (r/(1/Fs) + find(t==0)); % range for ACh peak
+    [a,b] = max(align_an{x,y}(r(1):r(2),:)); % find local maximum within range
+    c = t(b + r(1) - 1); % convert index to seconds
+    c(b == 1) = nan; c(isnan(a)) = nan; % remove values that are not local maxima
+    lag(x,1) = nanmean(c);
+    val(x,1) = nanmean(a);
+    
+    y = 2;
+    r = [0.1 0.5]; r = (r/(1/Fs) + find(t==0)); % range for DA peak
+    [a,b] = max(align_an{x,y}(r(1):r(2),:)); % find local maximum within range
+    c = t(b + r(1) - 1); c(isnan(a)) = nan; % convert index to seconds
+    lag(x,2) = nanmean(c);
+    val(x,2) = nanmean(a);
+    
+    y = 1;
+    r = [0.2 0.7]; r = (r/(1/Fs) + find(t==0)); % range for ACh trough
+    [a,b] = min(align_an{x,y}(r(1):r(2),:)); % find local minima within range
+    c = t(b + r(1) - 1); c(isnan(a)) = nan; % convert index to seconds
+    lag(x,3) = nanmean(c);
+    val(x,3) = nanmean(a);
+end
+lag([12 13],1) = nan;
+%%
+figure; hold on;
+a = lag'.*1000;
+plot(a,'--','Color',[0 0 0 0.2]);
+errorbar(nanmean(a,2),SEM(a,2),'.-k','MarkerSize',20);
+xlim([0.5 3.5]); xticks([1:3]); xticklabels({'ACh peak','DA peak','ACh trough'});
+ylabel('latency to reward (ms)'); ylim([0 700]);
+% p = []; p(1) = signrank(a(:,1),a(:,2)); p(2) = signrank(a(:,2),a(:,3));
+p = kruskalwallis(a',[],'off');
+title(sprintf('kruskalwallis: p = %1.3f',p)); axis('square');
+
+%% STATS: b2flox
+fig = figure; fig.Position(3) = 1000;
+subplot(1,2,1); hold on
+y = 2;
+plot(lag_wt(:,y).*1000, val_wt(:,y), '.k', 'MarkerSize', 20);
+plot(lag_b2(:,y).*1000, val_b2(:,y), '.m', 'MarkerSize', 20);
+errorbar(nanmean(lag_wt(:,y).*1000), nanmean(val_wt(:,y)), SEM(val_wt(:,y),1), SEM(val_wt(:,y),1), SEM(lag_wt(:,y).*1000,1), SEM(lag_wt(:,y).*1000,1), '.k', 'MarkerSize', 20);
+errorbar(nanmean(lag_b2(:,y).*1000), nanmean(val_b2(:,y)), SEM(val_b2(:,y),1), SEM(val_b2(:,y),1), SEM(lag_b2(:,y).*1000,1), SEM(lag_b2(:,y).*1000,1), '.m', 'MarkerSize', 20);
+ylabel('DA peak amp'); ylim([0 20]); yticks([0:5:20]);
+xlabel('time to rew (s)'); xlim([0 600]);
+p = ranksum(lag_wt(:,y),lag_b2(:,y)); p(2) = ranksum(val_wt(:,y),val_b2(:,y));
+title(sprintf('ranksum: lag = %1.3f, val = %1.3f',p(1),p(2))); axis('square');
+
+subplot(1,2,2); hold on
+y = 3;
+plot(lag_wt(:,y).*1000, val_wt(:,y), '.k', 'MarkerSize', 20);
+plot(lag_b2(:,y).*1000, val_b2(:,y), '.g', 'MarkerSize', 20);
+errorbar(nanmean(lag_wt(:,y).*1000), nanmean(val_wt(:,y)), SEM(val_wt(:,y),1), SEM(val_wt(:,y),1), SEM(lag_wt(:,y).*1000,1), SEM(lag_wt(:,y).*1000,1), '.k', 'MarkerSize', 20);
+errorbar(nanmean(lag_b2(:,y).*1000), nanmean(val_b2(:,y)), SEM(val_b2(:,y),1), SEM(val_b2(:,y),1), SEM(lag_b2(:,y).*1000,1), SEM(lag_b2(:,y).*1000,1), '.g', 'MarkerSize', 20);
+ylabel('ACh trough amp'); ylim([-8 0]); yticks([-8:2:0]);
+xlabel('time to rew (s)'); xlim([0 600]);
+p = ranksum(lag_wt(:,y),lag_b2(:,y)); p(2) = ranksum(val_wt(:,y),val_b2(:,y));
+title(sprintf('ranksum: lag = %1.3f, val = %1.3f',p(1),p(2))); axis('square');

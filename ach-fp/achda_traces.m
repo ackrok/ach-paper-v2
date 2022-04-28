@@ -1,6 +1,7 @@
 %% ACh leads DA
-% x = 19;
-x = 30;
+beh = modAChDA; beh(42) = [];
+
+x = 41;
 
 fp_ach = beh(x).FP{1}; Fs = beh(x).Fs; % extract photometry signal from structure
 fp_mu = nanmean(fp_ach); % mean of entire photometry signal
@@ -16,15 +17,28 @@ fp_da_imm = fp_da(idx_imm_nonRew);
 figure; hold on; 
 plot(beh(x).time(idx_imm_nonRew), fp_ach_imm, 'g'); 
 plot(beh(x).time(idx_imm_nonRew), fp_da_imm, 'm');
-ylabel('Photometry (%dF/F)'); ylim([-20 20])
+
+ylabel('Photometry (%dF/F)'); % ylim([-20 20])
 yyaxis right; 
 acc = getAcc(beh(x).vel); 
 plot(beh(x).time(idx_imm_nonRew), acc(idx_imm_nonRew), 'k');
 ylabel('Acceleration (cm/s^2)'); ylim([-2 6]);
 title(sprintf('%s',beh(x).rec))
 
-% x = 41; xlim([676 681.5]); xticks([676:681]); % JM007 ACh leads DA
-% x = 30; xlim([1581.5 1587.5]); xticks([1582:1587]); % AK190 ACh leads DA
+% passband = [0.5 4]; % bandpass filter
+% fp_filt = filterFP(fp_ach,Fs,passband,10,'bandpass'); 
+% testdiff = cumsum(fp_filt); testdiff - nanmean(testdiff);
+% plot_fp = testdiff(idx_imm_nonRew);
+% plot(beh(x).time(idx_imm_nonRew), plot_fp, 'b'); 
+
+% passband = [0.5 4]; % bandpass filter
+% fp_filt = filterFP(fp_da,Fs,passband,10,'bandpass'); 
+% testdiff = diff(fp_filt); testdiff - nanmean(testdiff);
+% plot_fp = testdiff(idx_imm_nonRew);
+% plot(beh(x).time(idx_imm_nonRew), plot_fp, 'k'); 
+
+% x = 41; xlim([676 681.5]); xticks([676:681]); % AK190 ACh leads DA -- imperfect 
+% x = 41; xlim([1581.5 1587.5]); xticks([1582:1587]); % AK190 ACh leads DA
 
 % x = 9; xlim([1461 1471]); % JM008 210630 lesion
 
@@ -44,7 +58,7 @@ linkaxes(sp,'y');
 
 %% ACh leads DA
 % x = 19;
-x = 38;
+x = 41;
 
 fp_ach = beh(x).FP{1}; Fs = beh(x).Fs; % extract photometry signal from structure
 fp_mu = nanmean(fp_ach); % mean of entire photometry signal
@@ -67,4 +81,4 @@ plot(beh(x).time, acc, 'k');
 ylabel('Acceleration (cm/s^2)'); ylim([-2 6]);
 title(sprintf('%s',beh(x).rec))
 
-% x = 41; xlim([676 681.5]); xticks([676:681]); % JM007 ACh leads DA
+x = 41; xlim([676 681.5]); xticks([676:681]); % JM007 ACh leads DA

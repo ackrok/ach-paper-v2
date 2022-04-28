@@ -7,20 +7,22 @@ for x = 1:length(new)
     tmp = [];
     for z = 1:length(new(x).onRest) % Iterate over each immobility period
         % if new(x).onRest(z) < 6000000; continue; end % Extract only from t = +30min post infusion start time
+%         if new(x).onRest(z) < 600000; continue; end % Extract only from t = +30min post infusion start time
+%         if new(x).offRest(z) > 3000000; continue; end % Extract only from t = +30min post infusion start time
         % if length(tmp) > 3000000; continue; end
         % tmp = [tmp; new(x).demod(new(x).onRest(z):new(x).offRest(z))]; % Extract and concatenate immobility periods
-        tmp = [tmp; new(x).rawFP{2}(new(x).onRest(z):new(x).offRest(z))]; % Extract and concatenate immobility periods
+        tmp = [tmp; new(x).rawFP{1}(new(x).onRest(z):new(x).offRest(z))]; % Extract and concatenate immobility periods
 %         for z = 1:length(new(x).on)
 %         tmp = [tmp; new(x).rawFP{1}(new(x).on(z):new(x).off(z))]; % Extract and concatenate immobility periods
     end
-    new(x).da_imm = tmp;
+    new(x).ach_imm = tmp;
 end
 
 %% FFT
 %new = new_ach([1:8 13 14 11 12]);
 p1_mat = [];
 for x = 1:length(new)
-    vec = [new(x).da_imm]; 
+    vec = [new(x).rawfp_imm]; 
     Fs = new(x).rawFs;
     
     needL = 2500*Fs;
@@ -53,7 +55,7 @@ for x = 1:size(p1_mat,2)
     % vec_norm = normalize(vec_norm,'zscore');
     tmp(:,x) = vec_norm;
 end
-norm_d1d2 = tmp;
+norm = tmp;
 fprintf('Normalization done! \n');
 
 %% PLOT FFT w/o subtraction

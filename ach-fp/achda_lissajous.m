@@ -1,5 +1,5 @@
 x = 15;
-
+ 
 fp_1 = beh(x).FP{1}; Fs = beh(x).Fs; % extract photometry signal from structure
 fp_mu = nanmean(fp_1); % mean of entire photometry signal
 fp_1 = fp_1 - fp_mu; % SUBTRACT baseline% from fp%, now centered on BASELINE

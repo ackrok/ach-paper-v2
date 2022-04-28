@@ -15,19 +15,20 @@ for y = 1:length(fName)
     x = 1 + length(new);
     new(x).rec = [an,'-',day]; 
     new(x).site = 'DLS';
-    new(x).rx = 'pre';
+    new(x).rx = 'b2flox';
     
     %% Pull parameters required for this analysis
 params = data.gen.params; % Extract params structure
 %     lpCut = 500; filtOrder = params.FP.filtOrder; % Filter Properties
 dsRate = params.dsRate; dsType = params.dsType; % General downsampling parameter
 %     sigEdge = params.FP.sigEdge; % Demodulation-specific property
-rawFs = data.gen.acqFs; Fs = rawFs/dsRate;
+rawFs = data.gen.acqFs; Fs = data.gen.Fs;
 %     nFP = length(data.acq.FP); %Obtain number of FP channels (Includes red control)
-    refSig = data.acq.refSig; %Pull reference signals
+    % refSig = data.acq.refSig; %Pull reference signals
     
     %% Process photometry data
     fprintf('Processing %s ... ',new(x).rec);
+    new(x).FPnames = data.acq.FPnames;
     new(x).rawFP = data.acq.FP;
 %     demod_dual = cell(nFP,1);
 %     for z = 1
@@ -49,10 +50,10 @@ rawFs = data.gen.acqFs; Fs = rawFs/dsRate;
     new(x).rawFs = rawFs;
 %     new(x).on = data.final.mov.onsets*dsRate;
 %     new(x).off = data.final.mov.offsets*dsRate;
-    if isfield(data.final,'mov')
+    if isfield(data,'final'); if isfield(data.final,'mov')
         new(x).onRest = data.final.mov.onsetsRest*dsRate;
         new(x).offRest = data.final.mov.offsetsRest*dsRate;
-    end
+        end; end
 %     if isfield(data.final,'rew'); if isfield(data.final.rew,'delivery')
 %         new(x).reward = data.final.rew.delivery*dsRate;
 %         end; end

@@ -19,9 +19,9 @@
 % If you want to show the phase distribution across all cells, collect phasestats.m across all cells, and do a histogram using phasebins as the bins ; again, if you want everything to be in degrees, 
 % you can just convert using rad2deg as is illustrated above
 
-rec = 'IV042_rec01';
+rec = 'IV055_rec01';
 
-lfp = struct; ch = [73];
+lfp = struct; ch = [39];
 lfp.data = bz_LoadBinary(['C:\Users\Anya\Desktop\IV_LOCAL\ACh\',rec,'.dat'],...
         'duration',Inf,'start',0,'frequency',30000,...
         'nchannels',128,'channels',ch,...

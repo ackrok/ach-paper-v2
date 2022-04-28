@@ -1,8 +1,9 @@
 [fName, fPath] = uigetfile('*.mat','MultiSelect','On');
 
 %%
+% beh = beh_da;
 beh = behACh(1:13); % ACh recordings
-grp = 3; % group labels 1-MSN, 2-CIN, 3-other
+grp = 1; % group labels 1-MSN, 2-CIN, 3-other
 
 mat = struct;
 for x = 1:length(beh)
