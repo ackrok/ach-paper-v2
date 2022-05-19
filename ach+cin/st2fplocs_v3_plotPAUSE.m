@@ -33,7 +33,7 @@ shadederrbar(time, movmean(nanmean(b,2),sm), movmean(nanmean(shuff5_rest,2),sm),
 shadederrbar(time, movmean(nanmean(a,2),5), movmean(SEM(a,2),5), 'r'); 
 ylabel('CIN Firing Rate (deltaFR)'); ylim([-0.2 0.1]);
 xlabel('Latency to ACh Pause (s)'); xlim([-1 1]); xticks([-1:0.5:1]);
-title(sprintf('min = %1.3f',min(nanmean(a([51:end],:),2))));
+title(sprintf('min = %1.2f',100*min(nanmean(a([1:end],:),2))));
 axis('square');
 
 above95 = []; below5 = [];

@@ -1,7 +1,10 @@
 %% ACh leads DA
-beh = modAChDA; beh(42) = [];
+% beh = modAChDA; beh(42) = [];
 
-x = 34;
+% x = 34; % JM005-L
+% x = 28; % JM005-R
+% x = 7; 
+x = 50;
 
 fp_ach = beh(x).FP{1}; Fs = beh(x).Fs; % extract photometry signal from structure
 fp_mu = nanmean(fp_ach); % mean of entire photometry signal
@@ -17,17 +20,15 @@ fp_da_imm = fp_da(idx_imm_nonRew);
 figure; hold on; 
 plot(beh(x).time, fp_ach, 'g'); 
 plot(beh(x).time, fp_da, 'm');
-stem(beh(x).reward./Fs, 10.*ones(length(beh(x).reward),1), 'b');
-lick = beh(x).lick(:)./Fs;
-a = [diff(lick.*1000) > 50]; % Identify licks that are <50ms after previous lick
-lick_sub = lick; lick_sub(1) = [];
-lick = [lick(1); lick_sub(a)];
-plot([lick, lick]',[10;11].*ones(2,length(lick)),'-k');
-
+if ~isempty(beh(x).reward)
+    stem(beh(x).reward./Fs, 10.*ones(length(beh(x).reward),1), 'b');
+    lick = beh(x).lick(:)./Fs;
+    a = [diff(lick.*1000) > 50]; % Identify licks that are <50ms after previous lick
+    lick_sub = lick; lick_sub(1) = [];
+    lick = [lick(1); lick_sub(a)];
+    plot([lick, lick]',[10;11].*ones(2,length(lick)),'-k');
+end
 ylabel('Photometry (%dF/F)'); % ylim([-20 20])
-
-yyaxis right; 
 acc = getAcc(beh(x).vel); 
-plot(beh(x).time, acc, 'k');
-ylabel('Acceleration (cm/s^2)'); ylim([-2 6]);
+plot(beh(x).time, acc - 5, 'k');
 title(sprintf('%s',beh(x).rec))

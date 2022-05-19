@@ -67,10 +67,11 @@ linkaxes(sp,'x');
 xlim([1190 1200]);
 
 %% nAChR antagonist
-beh = s(4).s; x = 3;
+% beh = s(4).s; x = 3;
 figure;
-sp(1) = subplot(2,1,1);
-plot(beh(x).time, beh(x).FP{1}, 'Color', [0.05 0.75 0.45]);
+sp(1) = subplot(2,1,1); hold on
+plot(beh(x).time, beh(x).FP{1} - nanmean(beh(x).FP{1}), 'Color', [0.05 0.75 0.45]);
+% plot(beh(x).time, beh(x).FP{2} - nanmean(beh(x).FP{2}), 'm');
 title(sprintf('%s - %s',beh(x).rec,beh(x).rx),'Interpreter','none');
 ylabel('ACh (%dF/F)'); ylim([-5 22])
 

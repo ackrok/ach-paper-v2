@@ -3,7 +3,8 @@
 good_rew = [10:16,20,22:26,28:29,32:35,40:42,44:46];
 beh = modAChDA(good_rew);
 [align_full, t] = plot_fp2event(beh, [-6 2], 0);
-
+ Fs = 50;
+ 
 % n = X mice, concatenate all trials for each animal
 an = {}; for x = 1:length(beh); an{x} = strtok(beh(x).rec,'-'); end
 uni = unique(an);

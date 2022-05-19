@@ -4,9 +4,9 @@
 % expression levels/light levels between animals. Only then would you be 
 % able to compare acsf vs. other antagonists.
 % 
-% load('C:\Users\Anya\Desktop\FP_LOCAL\AK189-197_cannula+rew_v2.mat')
-% load('C:\Users\Anya\Desktop\FP_LOCAL\cannula\scop_processed_mod.mat')
-
+load('C:\Users\Anya\Desktop\FP_LOCAL\AK189-197_cannula+rew_full.mat')
+load('C:\Users\Anya\Desktop\FP_LOCAL\cannula\raw_data\scop_processed_mod.mat')
+%%
 a = [34 36 38 40; 26 42 30 44; 18 20 22 24; 46 48 NaN 50]';
 tmp = []; tmp_base = [];
 
@@ -25,7 +25,7 @@ for x = 1:4; for y = 1:4
     %%
     tmp(x,y) = mode(demodImm); %([1:5*50])); % Mean of first 5s of immobility
     tmp_base(x,y) = mode(baseImm); %([1:5*50])); 
-    end; end
+end; end
 %%
 scop = [];
 for x = 1:6
@@ -44,8 +44,11 @@ errorbar(0.25+[1:5],nanmean(b,1),SEM(b,1),'.b', 'MarkerSize', 20);
 xlim([0.5 5.5]); xticks([1:5]); 
 xticklabels({'aCSF','d1d2','glu','nAChR','mAChRantag'});
 ylabel('% of baseline'); ylim([0 1]); yticks([0:0.25:1]);
-title('mode(infusion)/mode(baseline) IMM');
+p = []; for x = 1:4; [~,p(x)] = ttest(b(:,1),b(:,x+1)); end
+title(sprintf('IMM. a/n %1.4f, a/scop %1.4f',p(2),p(4)));
 
+
+%% other plots:
 %% FRACTION of BASELINE -- to aCSF
 figure; hold on
 b = tmp./tmp_base; b = b./nanmean(b(:,1));

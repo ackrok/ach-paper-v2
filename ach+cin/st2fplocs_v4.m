@@ -2,6 +2,8 @@
 % Find instantaneous phase of each signal
 % Plot distribution of %dF/F photometry signal w.r.t. instantaneous phase:
 %   for ACh photometry signal, normalized, to the phase of LFP
+%
+% 2022-05-18: updated 95% CI to be from 2.5 to 97.5%
 
 %% (1) Load data
 load('C:\Users\Anya\Desktop\IV_LOCAL\data_comb\fullbeh_ACh_v2')
@@ -10,7 +12,7 @@ load('C:\Users\Anya\Desktop\IV_LOCAL\data_comb\fullcin_Feb21_ACh+DA+PF');
 sub = cinwt;  % Extract CINs from recordings with ACh
 
 %% (2) PETH
-lbl = 'peak'; % CHANGE
+lbl = 'pause'; % CHANGE
 
 Fs = 50; nShuff = 5;
 bin = 0.02; window = [-1 1]; %CHANGE: window for PETH
@@ -81,7 +83,7 @@ for x = 1:length(beh)
             % mu = nanmean(nanmean(peth_shuff.fr,2)); sigma = nanmean(nanstd(peth_shuff.fr,[], 2)); 
             % tmp_z = (peth.fr(:,y) - mu)./sigma; % z-score signal using shuffled mu, sigma
             % alignZ{z} = [alignZ{z}, tmp_z]; % add to matrix
-            prc = prctile(peth_shuff.fr,[5 50 95],2); %5th, 50th, 95th percentile of shuffled PETH
+            prc = prctile(peth_shuff.fr,[2.5 50 97.5],2); %5th, 50th, 95th percentile of shuffled PETH
             shuff50{z} = [shuff50{z}, (prc(:,2)-fr(y,z))./fr(y,z)]; 
             shuff95{z} = [shuff95{z}, (prc(:,3)-fr(y,z))./fr(y,z)]; 
             shuff5{z} = [shuff5{z}, (prc(:,1)-fr(y,z))./fr(y,z)]; 

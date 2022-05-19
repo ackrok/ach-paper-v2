@@ -4,10 +4,11 @@ beh = modAChDA(good);
 
 rmv = [1 11 15 16 17 20 21 24];
 beh = allDMS; beh(rmv) = [];
+
 %%
 mat = struct;
 h = waitbar(0,'coherogram');
-for x = 1:length(beh); aa = [1 2];
+for x = 1:length(beh); aa = [4 3];
   
     mat(x).rec = beh(x).rec; % load recording name
     fp_1 = [beh(x).FP{aa(1)} - nanmean(beh(x).FP{aa(1)})];
@@ -121,17 +122,20 @@ xlabel('time (s)'); ylabel('frequency (Hz)');
 movegui(gcf,'center');
 
 %% TESTING
-x = 28;
+x = 18;
 
 fp_mat = [beh(x).FP{1}, beh(x).FP{2}]; % extract photometry signal from structure
 fp_mat = fp_mat - nanmean(fp_mat);
 Fs = beh(x).Fs;
 
-sig = fp_mat;
-r = [1210 1590]; % x = 28, REW + IMM + MOV
+sig = fp_mat; r = [1 1800];
+% r = [1210 1590]; % x = 28, REW + IMM + MOV
 % r = [1 600];  % x = 7,  IMMOBILITY
 % r = [1200 1600];  % x = 7, IMMOBILITY + two movement bouts
-% r = [1200 1600]; % DMS x = 5 (GZ001 210416) IMM + MOV
+% r = [1400 1800]; % DMS x = 5 (GZ001 210416) IMM + MOV
+r = [300 700]; % DMS x = 18 (GZ002 210222) IMM + MOV
+% r = [250 650]; % openfield x = 7 GZ002-210426
+
 sig = fp_mat([find(beh(x).time == r(1)):find(beh(x).time == r(2))],:);
 
 %

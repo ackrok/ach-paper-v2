@@ -23,7 +23,8 @@ for z = 1:2 % PAUSE(1) or PEAK(2)
     ylabel(sprintf('IMM %s Frequency',lbl)); ylim([0 1.5]); yticks([0:0.5:3]);
     % p = []; for x = 2:3; [~, p(x)] = ttest(a(:,1),a(:,x)); end
     % [~,p(4)] = ttest(a([1 2 4],1),a([1 2 4],4));
-    p = []; for x = 2:4; p(x) = signrank(a(:,1),a(:,x)); end
+    % p = []; for x = 2:4; p(x) = signrank(a(:,1),a(:,x)); end
+    p = []; for x = 2:4; [~,p(x)] = ttest(a(:,1),a(:,x)); end
     title(sprintf('(a/da: %1.4f)(a/glu: %1.4f)(a/n: %1.4f)',p(2),p(3),p(4))); axis('square');
 
     %% IMM - duration
@@ -44,7 +45,8 @@ for z = 1:2 % PAUSE(1) or PEAK(2)
     xlim([0.5 4.5]); xticks([1:3]); xticklabels({'aCSF','D1R/D2R','glu','DHbE'});
     ylabel(sprintf('IMM %s Duration',lbl)); ylim([0 500]); yticks([0:100:500]);
     % [~, p] = ttest(a(:,1),a(:,2)); [~,p(2)] = ttest(a([1 2 4],1),a([1 2 4],3));
-    p = []; for x = [2 4]; p(x) = signrank(a(:,1),a(:,x)); end
+    % p = []; for x = [2 4]; p(x) = signrank(a(:,1),a(:,x)); end
+    p = []; for x = 2:4; [~,p(x)] = ttest(a(:,1),a(:,x)); end
     title(sprintf('(a/da: %1.4f)(a/n: %1.4f)',p(2),p(4))); axis('square');
 
     %% IMM - amplitude
@@ -65,6 +67,7 @@ for z = 1:2 % PAUSE(1) or PEAK(2)
     xlim([0.5 4.5]); xticks([1:3]); xticklabels({'aCSF','D1R/D2R','glu','DHbE'});
     ylabel(sprintf('IMM %s Amplitude',lbl)); ylim([0 5]); yticks([0:1:5]);
     % [~, p] = ttest(a(:,1),a(:,2)); [~,p(2)] = ttest(a([1 2 4],1),a([1 2 4],3));
-    p = []; for x = [2 4]; p(x) = signrank(a(:,1),a(:,x)); end
+    % p = []; for x = [2 4]; p(x) = signrank(a(:,1),a(:,x)); end
+    p = []; for x = 2:4; [~,p(x)] = ttest(a(:,1),a(:,x)); end
     title(sprintf('(a/da: %1.4f)(a/n: %1.4f)',p(2),p(4))); axis('square');
 end

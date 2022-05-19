@@ -13,6 +13,8 @@
 good = [1:length(modAChDA)]; rmv = 42; good(rmv) = [];
 beh = modAChDA(good);
 
+beh = dual;
+
 %%
 mat = struct;
 corr_cell = cell(3,4);
@@ -41,7 +43,7 @@ for x = 1:length(beh); y = [2 1]; %CHANGE - which FP signal to run CCG or ACG on
 
     %% behavioral states
     if isfield(beh,'reward')
-        idx_rew = extractEventST([1:length(fp_mat)]', floor(beh(x).reward), floor(beh(x).reward)+100, 1); % identify sample during reward
+        idx_rew = extractEventST([1:length(fp_mat)]', floor(beh(x).reward), floor(beh(x).reward)+50, 1); % identify sample during reward
     else; idx_rew = []; end
     idx_mov = extractEventST([1:length(fp_mat)]', beh(x).on, beh(x).off, 1); % identify sample during locomotion
     idx_mov_nonRew = idx_mov(~ismember(idx_mov, idx_rew)); % exclude reward, include locomotion

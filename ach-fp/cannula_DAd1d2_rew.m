@@ -8,8 +8,8 @@ mu = []; sigma = []; % initialize/clear matrix
 fp_cell = {}; fp_max = {};
 % fp_1 = {}; fp_2 = {};
 
-z = 1; % ACh or DA
-for y = 1:length(s) % iterate over infusion
+z = 2; % ACh or DA
+for y = 1:2 % iterate over infusion
     beh = s(y).s;
     for x = 1:length(beh) % iterate over animal
         a_rew = s(y).a{x,z}; % extract reward-aligned signal
@@ -25,7 +25,7 @@ for y = 1:length(s) % iterate over infusion
         fp_base = a_rew(find(t == -6):find(t == -1),:); % Update 22-01-19: subtract baseline of aligned photometry segment instead of baseline recording
         fp_base_mu = nanmean(nanmean(fp_base));
         a_rew = a_rew - fp_base_mu; % subtract baseline%
-        m = max(a_rew(find(t == 0):find(t == 0.5),:));
+        m = max(a_rew(306:find(t == 0.5),:)); % m = max(a_rew(find(t == 0):find(t == 0.5),:));
         
         fp_cell{x,y} = a_rew;
         fp_max{x,y} = m(:);

@@ -1,14 +1,14 @@
 [fName, fPath] = uigetfile('*.mat','MultiSelect','On');
 
 %%
+sub = cinWT; beh = behWT;
+% sub = WT(find([WT.label] == 1)); beh = behwt;
+
 mat = struct;
 h = waitbar(0, 'tuning unit to LFP');
 for x = 1:length(fName)
     load(fullfile(fPath,fName{x}));
 
-    % sub = cinWT; beh = behWT;
-    sub = WT(find([WT.label] == 1)); beh = behwt;
-    
     ii = find(strcmp({sub.rec},lfp.rec));
     if isempty(ii); continue; end
     st = cell(length(ii),1);
@@ -30,6 +30,7 @@ for x = 1:length(fName)
     mat(x).phasedistros = data.phasedistros;
     mat(x).pref = rad2deg(data.phasestats.m);
     mat(x).p = data.phasestats.p;
+    mat(x).kappa = data.phasestats.k;
     waitbar(x/length(fName),h);
 end
 phasebins = data.phasebins;

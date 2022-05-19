@@ -10,20 +10,21 @@ fig = figure; fig.Position(3) = 1375;
 sm = 10;
 fr_imm = []; for x = 1:length(mat); fr_imm = [fr_imm; mat(x).fr(:,2)]; end
 
-% x = find(strcmp({mat.rec},'IV066_rec03')); y = [21 22]; clr = {'c','b'}; % DLS/DLS
-% subplot(1,3,1); hold on
-% plot([0 0],[2 8],'--k');
-% for z = 1:2
-% %     mid = (shuff50_rest(:,y(z)).*fr_imm(y(z))) + fr_imm(y(z));
-% %     high = (shuff95_rest(:,y(z)).*fr_imm(y(z))) + fr_imm(y(z));
-% %     low = (shuff5_rest(:,y(z)).*fr_imm(y(z))) + fr_imm(y(z));
-% %     shadederrbar(time, movmean(mid,sm), movmean(high-mid,sm), clr{z}); 
-%     plot(time, movmean(align_rest(:,y(z)),sm), 'k');
-% end
-% ylabel('Firing Rate (Hz)'); 
-% xlabel('Latency to ACh Peak (s)'); xlim([-1 1]); xticks([-1:0.5:1]);
-% title(sprintf('%s','IV066-rec03'));
-% axis('square');
+%x = find(strcmp({mat.rec},'IV066_rec03')); y = [21 22]; clr = {'c','b'}; % DLS/DLS
+x = find(strcmp({mat.rec},'IV066_rec03')); y = [26 27]; clr = {'c','b'}; % DLS/DLS
+subplot(1,3,1); hold on
+plot([0 0],[2 8],'--k');
+for z = 1:2
+%     mid = (shuff50_rest(:,y(z)).*fr_imm(y(z))) + fr_imm(y(z));
+%     high = (shuff95_rest(:,y(z)).*fr_imm(y(z))) + fr_imm(y(z));
+%     low = (shuff5_rest(:,y(z)).*fr_imm(y(z))) + fr_imm(y(z));
+%     shadederrbar(time, movmean(mid,sm), movmean(high-mid,sm), clr{z}); 
+    plot(time, movmean(align_rest(:,y(z)),sm), 'k');
+end
+ylabel('Firing Rate (Hz)'); 
+xlabel('Latency to ACh Peak (s)'); xlim([-1 1]); xticks([-1:0.5:1]);
+title(sprintf('%s','IV066-rec03'));
+axis('square');
 
 subplot(1,3,2); hold on
 a = alignDelta_rest - nanmean(alignDelta_rest([1:find(time == -0.51)],:)); % subtract baseline

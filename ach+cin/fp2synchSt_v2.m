@@ -1,5 +1,5 @@
 %% (1) Load data
-load('fullcin+beh_ACh')
+load('C:\Users\Anya\Desktop\IV_LOCAL\data_comb\fullcin+beh_ACh_v2.mat')
 sub = cinACh;  % Extract CINs from recordings with ACh
 beh = behACh; % Extract ACh recordings
 
@@ -26,11 +26,11 @@ for u = 1:length(uni)
         peth = getClusterPETH(st_other, st, bin, window); % PETH: spike times aligned to spike times
         %%
         prob = []; 
-        t_0 = 1; cts0 = []; cts = {};
+        t_0 = 1; cts_0 = []; cts = {};
         for y = 1:length(st_other)
             cts{y} = peth.cts{y}; 
             prob(:,y) = (sum(peth.cts{y},2))./length(st_other{y}); % Probability of firing = cts/st
-            cts0(y,:) = peth.cts{y}(t_0,:);
+            cts_0(y,:) = peth.cts{y}(t_0,:);
         end 
         %% STA
         fp = beh(ib).FP{1}; Fs = 50;
@@ -43,7 +43,7 @@ for u = 1:length(uni)
         mat(next).rec = sub_uni(x).rec; 
         mat(next).n = sub_uni(x).n; mat(next).m = [sub_uni(jj).n];
         mat(next).st = st;
-        mat(next).cts0 = cts0; 
+        mat(next).cts0 = cts_0; 
         mat(next).cts = cts; mat(next).prob = prob; 
         mat(next).sta = sta_fp;
         
@@ -110,6 +110,7 @@ for x = 1:length(mat)
     sta_shuff95(:,x) = mat(x).prc_shuffRest(:,1) - mat(x).prc_shuffRest(:,2);
     propN(x) = length(iN_imm)/length(cts);
 end
+fprintf('1/N vs N/N DONE. \n');
 
 %% (3b) Plot STA IMM for each recording - IMMOBILITY
 figure; plm = floor(sqrt(length(mat))); pln = ceil(length(mat)/plm);

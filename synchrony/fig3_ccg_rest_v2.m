@@ -1,3 +1,7 @@
+%% LOAD DATA
+cd('R:\homes\ack466\ACh paper\3_CIN_rest_synchrony');
+load('C:\Users\Anya\Desktop\IV_LOCAL\data_comb\fullcin_2022-Feb_WT.mat')
+
 %%
 velThres = 0.25;
 Fs = 50;
@@ -16,7 +20,7 @@ end
 mat = struct; %Initialize structure to save CCG output data into
 uni = unique({sub.rec}); %Find unique recording IDs across all units
 Fs = 50; %Sampling frequency for behavioral data
-diffFs = 50;
+diffFs = 1;
 
 for x = 1:length(uni)
     fprintf('%s \n',uni{x});
@@ -49,9 +53,9 @@ for x = 1:length(uni)
         mat(x).fr(y) = 1/mean(diff(ccgst.times(ccgst.pairs(y).m).full));
         mat(x).fr_mvmt(y) = 1/mean(diff(extractEventST(ccgst.times(ccgst.pairs(y).m).full,beh(idx_b).on/diffFs,beh(idx_b).off/diffFs,0)));
         mat(x).fr_rest(y) = 1/mean(diff(extractEventST(ccgst.times(ccgst.pairs(y).m).full,beh(idx_b).onRest/diffFs,beh(idx_b).offRest/diffFs,0)));
-        mat(x).shuffPrc{y} = prctile(ccgst.pairs(y).shuff,[5 50 95],2); %5th, 50th, 95th percentile of shuffled CCG's
-        mat(x).shuffPrc_mvmt{y} = prctile(ccgst.pairs(y).shuff_mvmt,[5 50 95],2); %5th, 50th, 95th percentile of shuffled CCG's
-        mat(x).shuffPrc_rest{y} = prctile(ccgst.pairs(y).shuff_rest,[5 50 95],2); %5th, 50th, 95th percentile of shuffled CCG's
+        mat(x).shuffPrc{y} = prctile(ccgst.pairs(y).shuff,[2.5 50 97.5],2); %5th, 50th, 95th percentile of shuffled CCG's
+        mat(x).shuffPrc_mvmt{y} = prctile(ccgst.pairs(y).shuff_mvmt,[2.5 50 97.5],2); %5th, 50th, 95th percentile of shuffled CCG's
+        mat(x).shuffPrc_rest{y} = prctile(ccgst.pairs(y).shuff_rest,[2.5 50 97.5],2); %5th, 50th, 95th percentile of shuffled CCG's
 %         xc_diff = sub(idx(ccgst.pairs(y).n)).coor(1) - sub(idx(ccgst.pairs(y).m)).coor(1); %Distance in x- or y-dimension
 %         zc_diff = sub(idx(ccgst.pairs(y).n)).coor(2) - sub(idx(ccgst.pairs(y).m)).coor(2); %Distnace in z-dimension
 %         mat(x).dist(y) = hypot(xc_diff,zc_diff);
@@ -138,10 +142,10 @@ h.Colormap = jet; h.GridVisible = 'off';
 
 %% PLOT versus DISTANCE
 x_var = [mat.dist]; x_var = x_var(:); %x_var = [mat.fr]';
-max_ccg = max(ccgDelta,[],1)';
+max_ccg = max(ccgDelta_rest,[],1)'; max_ccg = max_ccg.*100;
 %%
-% tbl = table(x_var,max_ccg,'VariableNames',{'dist','maxCCG'}); %Create a table
-tbl = table(x_var(x_var < 800), max_ccg(x_var < 800), 'VariableNames', {'dist','maxCCG'}); %Create a table
+tbl = table(x_var, max_ccg,'VariableNames',{'dist','maxCCG'}); %Create a table
+% tbl = table(x_var(x_var < 800), max_ccg(x_var < 800), 'VariableNames', {'dist','maxCCG'}); %Create a table
 mdl = fitlm(tbl,'maxCCG ~ dist'); %Fit a linear regression model with max(CCG) as response variable, unitDistance as predictor variable
 ci = coefCI(mdl); %Find confidence intervals for the coefficients of the model
 x_hat = [1:max(x_var)]; 
@@ -150,13 +154,13 @@ yerrl = ci(1,1) + ci(2,1)*x_hat; yerru = ci(1,2) + ci(2,2)*x_hat; %Lower and upp
 xpatch = [x_hat,fliplr(x_hat)]; ypatch = [yerru,fliplr(yerrl)]; %Generate patch for plotting shaded confidence interval
 
 figure; hold on
-plot(x_hat,nanmean(ccg95(:))*ones(length(x_hat),1),'--k'); %Dashed line for 95% confidence interval
+% plot(x_hat,nanmean(ccg95(:))*ones(length(x_hat),1),'--k'); %Dashed line for 95% confidence interval
 plot(x_var,max_ccg,'.b','MarkerSize',20);
 fill(xpatch,ypatch,[0 0 0],'FaceAlpha',0.25,'EdgeAlpha',0); %Plotting shaded confidence interval
 plot(x_hat,y_hat,'-r'); %Plotting model fit line
 xlabel('Unit Distance (um)'); ylabel('Max CCG rest spikes (deltaFR)');
 title(sprintf('CCG peak ~ Unit Distance (n = %d pairs)',size(ccgDelta,2)));
-title(sprintf('CCG peak ~ Unit Distance (n = %d pairs)\nR-squared = %1.3f',size(ccgDelta,2),mdl.Rsquared.Ordinary));
+title(sprintf('CCG peak ~ Unit Distance (n = %d pairs)\nr2 = %1.3f | slope = %1.3f | p = %1.3f',size(ccgDelta,2),mdl.Rsquared.Ordinary,mdl.Coefficients{2,1},mdl.Coefficients{2,4}));
 xlim([-50 1150]); 
 
 %% PLOT proportion of pair CCG > 95% CI

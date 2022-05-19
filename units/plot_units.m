@@ -1,9 +1,9 @@
 %% characterizing recordings
 
 %% UNIT 3D PLOT -- Peak Latency (ms), Prop (ISI > 2s), Firing Rate (Hz)
-roi = WT;
+roi = cinWT;
 %
-peakL = [roi.peakL]; 
+peakL = [roi.peakLatency]; 
 fr    = [roi.fr]; 
 pISI2 = [roi.pISI2];
 %
@@ -120,3 +120,29 @@ xlabel('Time (ms)'); ylabel('(z-score)'); ylim([-5 1]);
 title(sprintf('pCIN waveform (n = %d units)',size(wf_wt,2)));
 axis('square')
 
+%% multiple properties comparison
+roi = cinWT; clr = {'k','b','g'};
+%
+fig = figure; fig.Position(3) = 1000;
+%
+vals_c = {[roi.fr],[roi.CV],[roi.pISI2],[roi.peakLatency]};
+win = [0 50; 0 10; 0 1; 0 4];
+bin = [0.5, 0.2, 0.02, 0.1];
+lbl = {'Firing Rate (Hz)','coeff of variation (CV)','phasic activity index','waveform duration (ms)'};
+%
+for ii = 1:length(vals_c)
+    subplot(2,2,ii); hold on
+    vals = vals_c{ii}; edges = [win(ii,1):bin(ii):win(ii,2)];
+%     vals_dist = [];
+    for x = unique([roi.label])
+        idx = find([roi.label] == x);
+%         n = histcounts(vals(idx), edges, 'Normalization', 'probability');
+%         vals_dist(:,x) = n;
+        % plot(edges(2:end)-bin/2, n, clr{x});
+        histogram(vals(idx), edges, 'Normalization', 'probability', 'FaceAlpha', 0.2, 'FaceColor', clr{x}, 'EdgeAlpha', 0.2);
+    end
+    % xlabel(lbl{ii}); 
+    % [p,~,stats] = kruskalwallis(vals, [roi.label], 'off');
+    % p_mult = multcompare(stats,'display','off');
+    title(lbl{ii});
+end
