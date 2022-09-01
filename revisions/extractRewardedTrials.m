@@ -1,4 +1,4 @@
-function [rewYes, rewNo] = extractRewardedTrials(rewDelivery, lick, window)
+function [rewYes, rewNo, lickNew] = extractRewardedTrials(rewDelivery, lick, varargin)
 %Extract index for rewarded and non-rewarded trials based on whether animal
 %licked within specified window
 %
@@ -11,7 +11,8 @@ function [rewYes, rewNo] = extractRewardedTrials(rewDelivery, lick, window)
 %   Input:
 %   - rewDelivery - Vector of reward delivery times, in seconds
 %   - lick - Vector of lick times, in seconds
-%   - window - Window for reward collection, in seconds
+%   - window (optional) - Window for reward collection, in seconds
+%       default is [0 1] second
 %
 %   Output:
 %   - rewYes - Vector with indices for delivery times where reward was
@@ -19,6 +20,13 @@ function [rewYes, rewNo] = extractRewardedTrials(rewDelivery, lick, window)
 %
 %   Author: Anya Krok, August 2022
 
+    %%
+    switch nargin
+        case 2
+            window = [0 1]; % default window is 1 second
+        case 3
+            window = varargin{1};
+    end
     lick = lick(:);
     rewDelivery = rewDelivery(:);
     
@@ -26,11 +34,11 @@ function [rewYes, rewNo] = extractRewardedTrials(rewDelivery, lick, window)
     %to ensure behaviorally possible separation between events
     lick_repeat = [diff(lick.*1000) > 50]; % Identify licks that are <50ms after previous lick
     lick_sub = lick; lick_sub(1) = [];
-    lick = [lick(1); lick_sub(lick_repeat)]; % Overwrite lick vector
+    lickNew = [lick(1); lick_sub(lick_repeat)]; % Overwrite lick vector
 
     %% 
     bin = 1/1000;
-    peth = getClusterPETH(lick, rewDelivery, bin, window); % PETH: lick aligned to reward in 1 ms bins
+    peth = getClusterPETH(lickNew, rewDelivery, bin, window); % PETH: lick aligned to reward in 1 ms bins
     cts = peth.cts{1}; % Lick counts in 1ms bins for each reward trial
     rew_lick0 = find(sum(cts,1) == 0); % Find reward index where total licks within window is 0
 
