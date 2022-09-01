@@ -2,7 +2,7 @@
 beh = modAChDA; beh(42) = [];
 
 x = 41;
-
+%%
 fp_ach = beh(x).FP{1}; Fs = beh(x).Fs; % extract photometry signal from structure
 fp_mu = nanmean(fp_ach); % mean of entire photometry signal
 fp_ach = fp_ach - fp_mu; % SUBTRACT baseline% from fp%, now centered on BASELINE

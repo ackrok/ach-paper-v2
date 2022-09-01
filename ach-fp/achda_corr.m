@@ -21,7 +21,7 @@ corr_cell = cell(3,4);
 for a = 1:3; for b = 1:4; corr_cell{a,b} = nan(501,length(beh)); end; end
 
 h = waitbar(0, 'cross corr');
-for x = 1:length(beh); y = [2 1]; %CHANGE - which FP signal to run CCG or ACG on
+for x = 1:length(beh); y = [1 2]; %CHANGE - which FP signal to run CCG or ACG on
     
     %% extract signals
     fp_mat = [];
@@ -106,7 +106,7 @@ for z = 1:3
 end
 
 %% PLOT: average full cross-correlation between ACh, DA signals
-z = 3;
+z = 1;
 
 figure; hold on
 plot([0 0],[-0.7 0.2],'--k');

@@ -1,4 +1,4 @@
-x = 15;
+x = 36; %JM007 210610
  
 fp_1 = beh(x).FP{1}; Fs = beh(x).Fs; % extract photometry signal from structure
 fp_mu = nanmean(fp_1); % mean of entire photometry signal
@@ -10,9 +10,9 @@ fp_1_filt = filterFP(fp_1,Fs,f,10,'bandpass');
 fp_2_filt = filterFP(fp_2,Fs,f,10,'bandpass');
 
 win = [277 279]; % x = 30, immobility
-win = [505 507]; % x = 30, locomotion
-win = [1441.5 1442.6]; % x = 30, locomotion
-win = [785 786]; % x = 15, reward
+% win = [505 507]; % x = 30, locomotion
+% win = [1441.5 1442.6]; % x = 30, locomotion
+% win = [785 786]; % x = 15, reward
 win = win.*Fs; nSamp = win(2) - win(1) + 1;
 
 win_fp = [];

@@ -198,13 +198,14 @@ end
 
 %% PLOT ANIMAL EXAMPLE
 % x = 7; % used for fig2
- x = 13;% looks good
+ x = 1;% looks good
 
 fig = figure; fig.Position([3 4]) = [1375 800]; clearvars sp
 colors = [1 0 0 0.1; 0 1 0 0.1; 0 0 1 0.1];
 lbl_ex = {'ACh minima','DA maxima'};
 bin = 0.5;
 edges = [-15 : bin : 45]; % edges of full spectrum of photometry values
+mid = edges(2:end) - bin/2;
 sm = 5;
 
 for y = 1:2

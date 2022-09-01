@@ -8,6 +8,7 @@
 
 %%
 % beh = modAChDA; beh(42) = [];
+NumStd = 1.5;
 
 fp2ph_beh = cell(2,3);
 fp2ph_norm_beh = fp2ph_beh;
@@ -57,7 +58,7 @@ for x = 1:length(beh)
 
         %Find the index of peaks that are more than NumStd standard deviations (NumStd could be 1.5 standard deviations)
         % finds the 0 degree phase indices that cross 1.5 standard deviations. Might have to remove the ; depending on whether your data is a row or column array
-        NumStd = 1.5;
+        % NumStd = 2; % MOVED ABOVE OUT OF FOR LOOP
         peakIdx = find(data_filt>(NumStd*stdsig) & [0; diff(data_phase>0)]);         
 
         %% Align photometry to phase
@@ -150,58 +151,58 @@ for x = 1:nAn
 end
 
 %% PLOT by ANIMAL
-fig = figure; fig.Position([3 4]) = [1375 800];
-clr = {'r','g','b'};
-mid = edges(2:end)-5;
-for y = 1:2
-    switch y; case 1; lbl = 'ACh'; case 2; lbl = 'DA'; end
-    
-    a = y; sp(y) = subplot(2,3,a); hold on
-    for z = 1:length(idx_cell)
-        shadederrbar( mid, nanmean(fp2ph_an{y,z},2), SEM(fp2ph_an{y,z},2), clr{z});
-    end
-    xlabel(sprintf('%s Phase',lbl)); xlim([-180 180]); xticks([-180:90:180]);
-    ylabel(sprintf('%s Fluorescence (dF/F)',lbl));
-    legend({'imm','','mov','','rew'});
-    title(sprintf('%s fp to %s phase (n = %d)',lbl,lbl,size(fp2ph_an{1,1},2))); axis('square');
-    
-    a = y+2; subplot(2,3,a); hold on
-    for z = 1:length(idx_cell)
-        % shadederrbar( mid, nanmean(fp2ph_norm_an{y,z},2), SEM(fp2ph_norm_an{y,z},2), clr{z});
-        plot( mid, nanmean(fp2ph_norm_an{y,z},2), clr{z});
-    end
-    xlabel(sprintf('%s Phase',lbl)); xlim([-180 180]); xticks([-180:90:180]);
-    ylabel(sprintf('%s Fluorescence (norm)',lbl)); ylim([0 1]);
-    % legend({'imm','','mov','','rew'});
-    title(sprintf('%s fp norm to %s phase',lbl,lbl)); axis('square');
-    
-    a = y+4; subplot(2,3,a); hold on
-    sm = 5;
-    for z = 1:length(idx_cell)
-        shadederrbar( mid, movmean(nanmean(da2achph_norm_an{y,z},2),sm), movmean(SEM(da2achph_norm_an{y,z},2),sm), clr{z});
-        % plot( mid, movmean(nanmean(da2achph_norm_an{y,z},2),sm), clr{z});
-    end
-    switch y; case 1; xx = 2; case 2; xx = 1; end
-    plot( edges(2:end)-5, nanmean(fp2ph_norm_an{xx,1},2), '--k');
-    xlabel(sprintf('%s Phase',lbl)); xlim([-180 180]); xticks([-180:90:180]);
-    ylabel('Fluorescence (norm)'); ylim([0 1]);
-    % legend({'imm','','mov','','rew','','ACh'});
-    title(sprintf('fp norm to %s phase',lbl));axis('square');
-end
-
-movegui(gcf, 'center')
+% fig = figure; fig.Position([3 4]) = [1375 800];
+% clr = {'r','g','b'};
+% mid = edges(2:end)-5;
+% for y = 1:2
+%     switch y; case 1; lbl = 'ACh'; case 2; lbl = 'DA'; end
+%     
+%     a = y; sp(y) = subplot(2,3,a); hold on
+%     for z = 1:length(idx_cell)
+%         shadederrbar( mid, nanmean(fp2ph_an{y,z},2), SEM(fp2ph_an{y,z},2), clr{z});
+%     end
+%     xlabel(sprintf('%s Phase',lbl)); xlim([-180 180]); xticks([-180:90:180]);
+%     ylabel(sprintf('%s Fluorescence (dF/F)',lbl));
+%     legend({'imm','','mov','','rew'});
+%     title(sprintf('%s fp to %s phase (n = %d)',lbl,lbl,size(fp2ph_an{1,1},2))); axis('square');
+%     
+%     a = y+2; subplot(2,3,a); hold on
+%     for z = 1:length(idx_cell)
+%         % shadederrbar( mid, nanmean(fp2ph_norm_an{y,z},2), SEM(fp2ph_norm_an{y,z},2), clr{z});
+%         plot( mid, nanmean(fp2ph_norm_an{y,z},2), clr{z});
+%     end
+%     xlabel(sprintf('%s Phase',lbl)); xlim([-180 180]); xticks([-180:90:180]);
+%     ylabel(sprintf('%s Fluorescence (norm)',lbl)); ylim([0 1]);
+%     % legend({'imm','','mov','','rew'});
+%     title(sprintf('%s fp norm to %s phase',lbl,lbl)); axis('square');
+%     
+%     a = y+4; subplot(2,3,a); hold on
+%     sm = 5;
+%     for z = 1:length(idx_cell)
+%         shadederrbar( mid, movmean(nanmean(da2achph_norm_an{y,z},2),sm), movmean(SEM(da2achph_norm_an{y,z},2),sm), clr{z});
+%         % plot( mid, movmean(nanmean(da2achph_norm_an{y,z},2),sm), clr{z});
+%     end
+%     switch y; case 1; xx = 2; case 2; xx = 1; end
+%     plot( edges(2:end)-5, nanmean(fp2ph_norm_an{xx,1},2), '--k');
+%     xlabel(sprintf('%s Phase',lbl)); xlim([-180 180]); xticks([-180:90:180]);
+%     ylabel('Fluorescence (norm)'); ylim([0 1]);
+%     % legend({'imm','','mov','','rew','','ACh'});
+%     title(sprintf('fp norm to %s phase',lbl));axis('square');
+% end
+% 
+% movegui(gcf, 'center')
 
 %% QUANTIFICATION
-pref = cell(2,1);
-for a = 1:size(da2achph_norm_an,1); for b = 1:size(da2achph_norm_an,2)
-    [~,c] = max(da2achph_norm_an{a,b}); % maximum, normalized to 1 so this is the preferred phase
-    pref{a}(:,b) = mid(c)+180; % preferred phase at maximum
-    end; end
-
-fig = figure; fig.Position(3) = 1000; clr = {'r','g','b'};
-for a = 1:2
-    subplot(1,2,a,polaraxes); hold on
-    for b = 1:3
-    polarhistogram(deg2rad(pref{a}(:,b)),6,'FaceColor',clr{b},'FaceAlpha',0.3,'Normalization','count');
-    end
-end
+% pref = cell(2,1);
+% for a = 1:size(da2achph_norm_an,1); for b = 1:size(da2achph_norm_an,2)
+%     [~,c] = max(da2achph_norm_an{a,b}); % maximum, normalized to 1 so this is the preferred phase
+%     pref{a}(:,b) = mid(c)+180; % preferred phase at maximum
+%     end; end
+% 
+% fig = figure; fig.Position(3) = 1000; clr = {'r','g','b'};
+% for a = 1:2
+%     subplot(1,2,a,polaraxes); hold on
+%     for b = 1:3
+%     polarhistogram(deg2rad(pref{a}(:,b)),6,'FaceColor',clr{b},'FaceAlpha',0.3,'Normalization','count');
+%     end
+% end
