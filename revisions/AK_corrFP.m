@@ -1,4 +1,4 @@
-function [corr_achda, lags, shuff_achda, min_val, min_lag] = AK_corrFP(beh)
+function [corr_achda, lags, shuff_achda] = AK_corrFP(beh)
 %Cross-correlation between ACh and DA photometry signals acquired during
 %dual color photometry recordings
 %
@@ -23,8 +23,6 @@ function [corr_achda, lags, shuff_achda, min_val, min_lag] = AK_corrFP(beh)
 %       shuff_achda{1,1} is 5th percentile for immobility, and so on
 %       shuff_achda{3,2} is 50th percentile for reward, and so on
 %       shuff_achda{2,3} is 95th percentile for locomotion, and so on
-%   'min_val' - cross-correlation maximal value for each animal during each behavioral state
-%   'min_lag' - latency at minimum, in seconds
 %
 %   Author: Anya Krok, December 2021
 
@@ -119,10 +117,4 @@ for x = 1:nAn
     end
 end
 
-%% STATISTICS: minimum of cross-correlation and latency at minimum
-% ACh and rDA photometry are mostly anti-correlated with a negative lag
-min_val = []; min_lag = []; % initialize output
-for z = 1:3 % iterate over behavioral states
-    [min_val(:,z), ii] = min(corr_achda{z,1}); % identify minimum for each animal during each behavioral state
-    min_lag(:,z) = lags(ii)./Fs; % adjust latency at minimum to be in seconds
 end

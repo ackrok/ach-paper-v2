@@ -26,6 +26,11 @@ switch behLoaded
 
             %% Movement
             if isfield(data.final,'vel') % If movement data exists
+                [~,ii] = max(abs(data.final.vel));
+                if data.final.vel(ii) < 0
+                    data.final.vel = -data.final.vel; % Flip velocity for recordings on IV rig#1, which has inverted positional encoder signal
+                    save(fullfile(fPath,fName{z}),'data'); % Overwrite data file to adjust
+                end
                 beh(x).vel = data.final.vel; % Velocity signal
                 beh(x).on = data.final.mov.onsets; beh(x).off = data.final.mov.offsets;                 % Movement onset/offset times in sampling freq (data.gen.Fs), NOT in seconds
                 beh(x).onRest = data.final.mov.onsetsRest; beh(x).offRest = data.final.mov.offsetsRest; % Rest onset/offset times in sampling freq (data.gen.Fs), NOT in seconds
@@ -49,7 +54,6 @@ switch behLoaded
             if isfield(data.acq,'rew')
                 % data = processReward(data, data.gen.params);
                 beh(x).task = 'reward';
-                % beh(x).cue = data.final.rew.cue;            % Cue onset times in sampling freq (data.gen.Fs), NOT in seconds
                 beh(x).reward = data.final.rew.onset;    % Reward delivery time in sampling freq (data.gen.Fs), NOT in seconds
                 beh(x).lick = data.final.lick.onset;        % Lick times in sampling freq (data.gen.Fs), NOT in seconds
                 beh(x).lickVec = data.final.lick.trace;        % Lick trace

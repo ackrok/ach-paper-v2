@@ -16,7 +16,7 @@ function [coher_achda, phase_achda, t, f, coher_shuff, phase_shuff] = AK_coherFP
 %   
 %   OUTPUTS
 %
-%   Author: Anya Krok, December 2021
+%   Author: Anya Krok, March 2022
 
 %% INPUTS
 aa = [2 1]; % Photometry signal to use as reference is the one listed first
@@ -25,7 +25,6 @@ aa = [2 1]; % Photometry signal to use as reference is the one listed first
 % be used as reference signal instead
 % Default from Krok 2022 is to use y = [2 1] so that rDA1m photometry
 % signal is the reference signal
-
 nStates = 3; % Number of behavioral states
 
 %%

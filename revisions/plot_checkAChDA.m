@@ -26,6 +26,12 @@ switch behLoaded
 
             %% Movement
             if isfield(data.final,'vel') % If movement data exists
+                [~,ii] = max(abs(data.final.vel));
+                if data.final.vel(ii) < 0
+                    data.final.vel = -data.final.vel; % Flip velocity for recordings on IV rig#1, which has inverted positional encoder signal
+                    fprintf('%s run on IV rig#1, flipping velocity signal and re-saving \n',beh(x).rec);
+                    save(fullfile(fPath,fName{z}),'data'); % Overwrite data file to adjust
+                end
                 beh(x).vel = data.final.vel; % Velocity signal
                 beh(x).on = data.final.mov.onsets; beh(x).off = data.final.mov.offsets;                 % Movement onset/offset times in sampling freq (data.gen.Fs), NOT in seconds
                 beh(x).onRest = data.final.mov.onsetsRest; beh(x).offRest = data.final.mov.offsetsRest; % Rest onset/offset times in sampling freq (data.gen.Fs), NOT in seconds
@@ -131,7 +137,7 @@ case {2, 3}
         ev = rew(rewYes); % CHANGE, aliging signal to rewarded trails
         
         sp(x) = subplot(plm,pln,x); hold on
-            plot([0 0],[-4 2],'k'); % plot line at reward delivery t = 0
+            plot([0 0],[-4 2],'Color',[0 0 0 0.2]); % plot line at reward delivery t = 0
             
         for y = 1:length(beh(x).FP); clr = {'g','m'};
             sig = beh(x).FP{y}; % signal that will be aligned to event times
@@ -162,7 +168,55 @@ case {2, 3}
     end
     linkaxes(sp,'y');
     movegui(gcf,'center');
+    
+case 4
+    %% Photometry to Lick
+    % lickWithin = 0.25; %CHANGE, lick within this window
+    % plotSingleTrial = 1; % CHANGE, if = 0 then will not plot single trial data;
+    % y = 1; %only ACh
+    % winRew = [-1 2]; % CHANGE, window for aligning signal to events
 
+    figure; 
+    plm = floor(sqrt(length(beh))); pln = ceil(length(beh)/plm);
+    % plm = 2; pln = length(beh);
+    for x = 1:length(beh)
+        Fs = beh(x).Fs;
+        rew = beh(x).reward./Fs; % reward delivery times, in seconds
+        lick = beh(x).lick./Fs; % lick times, in seconds
+        [rewYes, ~, lickNew] = extractRewardedTrials(rew, lick, [0 lickWithin]);
+        %rewYes: indices of rewarded trials (animal licked within specified window)
+        ev = rew(rewYes); % CHANGE, aliging signal to rewarded trails
+        
+        % % aligning photometry to FIRST lick
+        bin = 1/1000;
+        peth = getClusterPETH(lickNew, ev, bin, [0 1]); % PETH: lick aligned to rewarded trials in 1 ms bins
+        cts = peth.cts{1}; % Lick counts in 1ms bins for each reward trial
+        [~, lickFirst] = max(cts~=0, [], 1); % Find first non-zero index for each trial
+        lickFirst = lickFirst(:).*bin + ev(:); % First lick after delivery for rewarded trials
+        
+        sp(x) = subplot(plm,pln,x); hold on
+            plot([0 0],[-4 2],'Color',[0 0 0 0.2]); % plot line at reward delivery t = 0
+            
+        for y = 1:length(beh(x).FP); clr = {'g','m'}; clr2 = {'b','r'};  
+            sig = beh(x).FP{y}; % signal that will be aligned to event times
+            sig = sig - nanmean(sig); % subtract mean of trace to center on zero
+            [mat, time] = getSTA(sig, ev, Fs, [winRew(1), winRew(end)]); % aligning photometry to reward DELIVERY
+            shadederrbar(time, nanmean(mat,2), SEM(mat,2), clr{y}); % plot average across trials
+            [mat, time] = getSTA(sig, lickFirst, Fs, [winRew(1), winRew(end)]); % aligning photometry to FIRST lick
+            shadederrbar(time, nanmean(mat,2), SEM(mat,2), clr2{y}); % plot average across trials
+        end
+        xlabel('latency (s)'); ylabel('FP (%dF/F)');
+        title(sprintf('%s (%d trials)',beh(x).rec,length(find(rewYes))),'Interpreter','none');
+        %title of subplot is <recording name (#rewarded trials)>
+        
+        % % aligning photometry to ALL licks
+%         subplot(plm,pln,x+length(beh)); hold on
+%         [mat, time] = getSTA(sig, lickNew, Fs, [winRew(1), winRew(end)]);
+%         shadederrbar(time, nanmean(mat,2), SEM(mat,2), 'g'); % plot average across trials
+%         xlabel('latency to lick (s)'); ylabel('ACh3.0 (%dF/F)');
+%         title('licks');
+    end
+    linkaxes(sp,'y');
 
 case 5
     %% Plot photometry to peaks of positive acceleration
@@ -176,7 +230,7 @@ case 5
         ev = beh(x).time(locs); % Convert peak locations to seconds  
         
         sp(x) = subplot(plm,pln,x); hold on
-            plot([0 0],[-5 10],'k'); % plot line at reward delivery t = 0
+            plot([0 0],[-1 5],'Color',[0 0 0 0.2]); % plot line at reward delivery t = 0
             
         for y = 1:length(beh(x).FP); clr = {'g','m'};
             sig = beh(x).FP{y}; % signal that will be aligned to event times
@@ -196,9 +250,10 @@ case 6
     %% Plot immobility pause peak
     % NumStd = 2;
     [amp, dur, freq, thres] = getImmPausePeak(beh);
-    freq(isnan(freq)) = 0;
-    dur(isnan(dur)) = 0; dur = dur.*(1000/Fs); % Adjust from samples to ms
-    amp(isnan(amp)) = 0; amp = abs(amp); % adjust to be absolute amplitude
+    Fs = beh(1).Fs;
+    freq(isnan(freq)) = nan;
+    dur(isnan(dur)) = nan; dur = dur.*(1000/Fs); % Adjust from samples to ms
+    amp(isnan(amp)) = nan; amp = abs(amp); % adjust to be absolute amplitude
     plotme = cell(1,3); plotme{1} = freq; plotme{2} = dur; plotme{3} = amp;
     
     fig = figure; fig.Position(3) = 1375;
@@ -231,54 +286,6 @@ case 6
 
     movegui(gcf,'center');
 
-case 4
-    %% Photometry to Lick
-    % lickWithin = 0.25; %CHANGE, lick within this window
-    % plotSingleTrial = 1; % CHANGE, if = 0 then will not plot single trial data;
-    % y = 1; %only ACh
-    % winRew = [-1 2]; % CHANGE, window for aligning signal to events
-
-    figure; 
-    plm = floor(sqrt(length(beh))); pln = ceil(length(beh)/plm);
-    % plm = 2; pln = length(beh);
-    for x = 1:length(beh)
-        Fs = beh(x).Fs;
-        rew = beh(x).reward./Fs; % reward delivery times, in seconds
-        lick = beh(x).lick./Fs; % lick times, in seconds
-        [rewYes, ~, lickNew] = extractRewardedTrials(rew, lick, [0 lickWithin]);
-        %rewYes: indices of rewarded trials (animal licked within specified window)
-        ev = rew(rewYes); % CHANGE, aliging signal to rewarded trails
-        
-        % % aligning photometry to FIRST lick
-        bin = 1/1000;
-        peth = getClusterPETH(lickNew, ev, bin, [0 1]); % PETH: lick aligned to rewarded trials in 1 ms bins
-        cts = peth.cts{1}; % Lick counts in 1ms bins for each reward trial
-        [~, lickFirst] = max(cts~=0, [], 1); % Find first non-zero index for each trial
-        lickFirst = lickFirst(:).*bin + ev(:); % First lick after delivery for rewarded trials
-        
-        sp(x) = subplot(plm,pln,x); hold on
-            plot([0 0],[-4 2],'k'); % plot line at reward delivery t = 0
-            
-        for y = 1:length(beh(x).FP); clr = {'g','m'}; clr2 = {'b','r'};  
-            sig = beh(x).FP{y}; % signal that will be aligned to event times
-            sig = sig - nanmean(sig); % subtract mean of trace to center on zero
-            [mat, time] = getSTA(sig, ev, Fs, [winRew(1), winRew(end)]); % aligning photometry to reward DELIVERY
-            shadederrbar(time, nanmean(mat,2), SEM(mat,2), clr{y}); % plot average across trials
-            [mat, time] = getSTA(sig, lickFirst, Fs, [winRew(1), winRew(end)]); % aligning photometry to FIRST lick
-            shadederrbar(time, nanmean(mat,2), SEM(mat,2), clr2{y}); % plot average across trials
-        end
-        xlabel('latency (s)'); ylabel('FP (%dF/F)');
-        title(sprintf('%s (%d trials)',beh(x).rec,length(find(rewYes))),'Interpreter','none');
-        %title of subplot is <recording name (#rewarded trials)>
-        
-        % % aligning photometry to ALL licks
-%         subplot(plm,pln,x+length(beh)); hold on
-%         [mat, time] = getSTA(sig, lickNew, Fs, [winRew(1), winRew(end)]);
-%         shadederrbar(time, nanmean(mat,2), SEM(mat,2), 'g'); % plot average across trials
-%         xlabel('latency to lick (s)'); ylabel('ACh3.0 (%dF/F)');
-%         title('licks');
-    end
-    linkaxes(sp,'y');
     %%
     end
     end

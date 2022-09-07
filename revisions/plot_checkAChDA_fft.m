@@ -96,6 +96,7 @@ switch loaded
         if isempty(rawS(1).rawFs); rawS(1) = []; end
         
         %% extract during IMMOBILITY
+        rmv = zeros(length(rawS),1);
         switch behState
             case 'immobility'
                 fprintf('Extracting signal during %s (this will take a while!) ...',behState)
@@ -108,7 +109,7 @@ switch loaded
                     else; idx_rew = [];
                     end
                     idx_imm = extractEventST([1:nSampRaw]', rawS(x).onRest, rawS(x).offRest, 1); % identify recording indices during immobility
-                    if isempty(idx_imm); fprintf('%s - no immobility \n', rawS(x).rec); end
+                    if isempty(idx_imm); fprintf('%s - no immobility \n', rawS(x).rec); rmv(x) = 1; end
                     idx_imm = idx_imm(~ismember(idx_imm, idx_rew)); % exclude reward from immobility indices
                     rawS(x).fp_sub = rawS(x).rawFP{y}(idx_imm); % extract signal during immobility
                     waitbar(x/length(rawS),h);
@@ -124,7 +125,7 @@ switch loaded
                     else; idx_rew = [];
                     end
                     idx_loc = extractEventST([1:nSampRaw]', rawS(x).on, rawS(x).off, 1); % identify recording indices during locomotion
-                    if isempty(idx_loc); fprintf('%s - no locomotion \n', rawS(x).rec); end
+                    if isempty(idx_loc); fprintf('%s - no locomotion \n', rawS(x).rec); rmv(x) = 1; end
                     idx_loc = idx_loc(~ismember(idx_loc, idx_rew)); % exclude reward from locomotion indices
                     rawS(x).fp_sub = rawS(x).rawFP{y}(idx_loc); % extract signal during locomotion
                     waitbar(x/length(rawS),h);
@@ -148,6 +149,7 @@ switch loaded
                     rawS(x).fp_sub = rawS(x).rawFP{y}; % full trace
                 end
         end
+        rawS(rmv == 1) = []; % remove recordings where no fp_sub extracted
         fprintf('DONE! \n');
 end
 
@@ -235,7 +237,7 @@ switch plotYes
             j1 = 0.8; j2 = 1.2; jit = j1 + (j2-j1).*rand(nAn,1); % jitter
             plot(jit, auc, '.k', 'MarkerSize', 20); % Plot area under curve power data points for each recording
             errorbar(nanmean(auc), SEM(auc,2), '.r', 'MarkerSize', 20); % Plot area under curve power averaged
-            xlim([0.6 1.4]); xticks([1]); xticklabels({'AUC'});
+            xlim([0.5 1.5]); xticks([1]); xticklabels({'AUC'});
             ylabel('Power (a.u.)'); ylim([0 0.5]);
             title(sprintf('AUC %1.1f-%dHz (mu: %1.2f)',range_auc(1),range_auc(2),nanmean(auc))); axis square
         movegui(gcf,'center');
