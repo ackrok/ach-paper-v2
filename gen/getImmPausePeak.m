@@ -53,18 +53,21 @@ function [amp, dur, freq, thres] = getImmPausePeak(beh, varargin)
     %% Analyze
     for x = 1:length(beh) % iterate over recordings
         if isempty(beh(x).Fs); continue; end
-        Fs = 50;
+        Fs = beh(x).Fs;
         fp_mat = beh(x).FP{1}; 
         fp_mat = fp_mat - nanmean(fp_mat);
 
         rewWindow = Fs; % how many samples after reward delivery is the reward window
-        idx_rew = extractEventST([1:length(fp_mat)]', floor(beh(x).reward), floor(beh(x).reward)+rewWindow, 1); % identify sample during reward
+        idx_rew = [];
+        if isfield(beh, 'reward'); if ~isempty(beh(x).reward)
+            idx_rew = extractEventST([1:length(fp_mat)]', floor(beh(x).reward), floor(beh(x).reward)+rewWindow, 1); % identify sample during reward
+            end; end
         idx_rest = extractEventST([1:length(fp_mat)]', beh(x).onRest, beh(x).offRest, 1); % index: infusion + rest
         idx_rest = idx_rest(~ismember(idx_rest, idx_rew)); % exclude reward, include rest
 
         %% Bandpass filter
         Fpass = [0.5 4];
-        Fs = 50; %sampling rate, has to be at least double of your high pass frequency
+        % Fs = 50; %sampling rate, has to be at least double of your high pass frequency
         Wn = [Fpass(1)/(Fs/2) Fpass(2)/(Fs/2)]; 
         [b,a] = butter(3,Wn);
         data_filt = filtfilt(b, a, fp_mat(:,1)); % signal is your photometry data, output is the filtered data
@@ -142,7 +145,7 @@ function [amp, dur, freq, thres] = getImmPausePeak(beh, varargin)
         ampCell{x,1} = tmp_amp_pause; ampCell{x,2} = tmp_amp_peak; % Amplitude of maximum deflection
         durCell{x,1} = tmp_dur_pause; durCell{x,2} = tmp_dur_peak; % Duration at half max
         amp(x,1) = nanmean(tmp_amp_pause); 
-        amp(x,2) = nanmean(tmp_amp_peak); 
+        amp(x,2) = nanmean(tmp_amp_peak);
         dur(x,1) = nanmean(tmp_dur_pause); 
         dur(x,2) = nanmean(tmp_dur_peak); 
         freq(x,1) = (1./nanmean(diff(idxPause)))*Fs; % Frequency of maximum deflections
